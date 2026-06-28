@@ -3,7 +3,6 @@ import {
   Phone,
   CheckCircle2,
   ArrowRight,
-  Star,
   Calendar,
   MessageSquare,
 } from 'lucide-react'
@@ -38,8 +37,7 @@ export function Hero() {
           {/* Left: Content */}
           <div className="text-center lg:text-left">
             <Badge variant="white" className="mb-6 inline-flex">
-              <Star className="h-3 w-3 mr-1.5 text-amber-400" aria-hidden="true" />
-              Now serving 200+ local businesses
+              Founder-led Early Access
             </Badge>
 
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.05] tracking-tight text-balance mb-6">
@@ -49,8 +47,8 @@ export function Hero() {
             </h1>
 
             <p className="text-lg sm:text-xl text-slate-300 leading-relaxed mb-8 max-w-lg mx-auto lg:mx-0">
-              Pivot AI answers every inbound call, captures leads, books
-              appointments, and notifies you instantly — 24/7, on autopilot.
+              Pivot AI answers calls 24/7, captures leads, books
+              appointments, and sends SMS follow-up — built for local service businesses.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-10">
@@ -77,9 +75,9 @@ export function Hero() {
             {/* Trust indicators */}
             <div className="flex flex-wrap items-center gap-x-6 gap-y-3 justify-center lg:justify-start">
               {[
-                '14-day free trial',
+                'Founder-led onboarding',
+                'Early access pilots',
                 'No credit card required',
-                'Live in 24 hours',
               ].map((item) => (
                 <div key={item} className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-amber-400 flex-shrink-0" aria-hidden="true" />
@@ -120,7 +118,7 @@ export function Hero() {
                     <div>
                       <p className="text-xs text-slate-400 mb-1">Pivot AI Receptionist</p>
                       <p className="text-sm text-white leading-relaxed">
-                        &ldquo;Thanks for calling Desert Pro HVAC! How can I help
+                        &ldquo;Thanks for calling! How can I help
                         you today?&rdquo;
                       </p>
                     </div>
@@ -146,7 +144,7 @@ export function Hero() {
                   {[
                     { icon: CheckCircle2, label: 'Lead captured', color: 'text-green-400' },
                     { icon: Calendar, label: 'Appointment booked — Tue 2PM', color: 'text-amber-400' },
-                    { icon: MessageSquare, label: 'Owner notified by email', color: 'text-blue-400' },
+                    { icon: MessageSquare, label: 'Owner notified', color: 'text-blue-400' },
                   ].map(({ icon: Icon, label, color }) => (
                     <div key={label} className="flex items-center gap-2.5">
                       <Icon className={`h-4 w-4 flex-shrink-0 ${color}`} aria-hidden="true" />
@@ -158,12 +156,12 @@ export function Hero() {
 
               {/* Floating stat cards */}
               <div className="absolute -left-6 top-8 bg-white rounded-xl shadow-xl px-4 py-3 hidden lg:block">
-                <p className="text-xs text-slate-500 font-medium">Response time</p>
-                <p className="text-xl font-bold text-navy-900">&lt; 2s</p>
+                <p className="text-xs text-slate-500 font-medium">Availability</p>
+                <p className="text-xl font-bold text-navy-900">24/7</p>
               </div>
               <div className="absolute -right-4 bottom-12 bg-white rounded-xl shadow-xl px-4 py-3 hidden lg:block">
-                <p className="text-xs text-slate-500 font-medium">Calls answered</p>
-                <p className="text-xl font-bold text-navy-900">100%</p>
+                <p className="text-xs text-slate-500 font-medium">Status</p>
+                <p className="text-xl font-bold text-navy-900 text-green-600">Active</p>
               </div>
             </div>
           </div>
@@ -171,12 +169,10 @@ export function Hero() {
 
         {/* Stats bar */}
         <div className="mt-16 pt-10 border-t border-white/10">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 text-center max-w-4xl mx-auto">
             {[
-              { value: '2,400+', label: 'Calls answered daily' },
-              { value: '98%', label: 'Lead capture rate' },
-              { value: '< 2s', label: 'Average response time' },
-              { value: '50+', label: 'Industries served' },
+              { value: 'Early Access', label: 'We are onboarding our first pilot customers' },
+              { value: 'Pilot Program', label: 'Working directly with local service businesses' },
             ].map(({ value, label }) => (
               <div key={label}>
                 <p className="text-3xl sm:text-4xl font-bold text-amber-400 mb-1">{value}</p>

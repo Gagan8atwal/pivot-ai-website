@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     template: '%s | Pivot AI',
   },
   description:
-    'Pivot AI answers every inbound call, captures leads, books appointments, and notifies you instantly — 24/7, on autopilot. Never miss another customer call.',
+    'Pivot AI answers calls 24/7, captures leads, and books appointments. Built for local service businesses.',
   keywords: [
     'AI receptionist',
     'missed call recovery',
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     url: siteUrl,
     title: 'Pivot AI — AI Receptionist for Local Businesses',
     description:
-      'Pivot AI answers every call, captures every lead, and books every appointment — 24/7. Never miss another customer.',
+      'Pivot AI answers calls 24/7, captures leads, and books appointments. Built for local service businesses.',
     siteName: 'Pivot AI',
     images: [
       {
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Pivot AI — AI Receptionist for Local Businesses',
     description:
-      'Pivot AI answers every call, captures every lead, and books every appointment — 24/7.',
+      'Pivot AI answers calls 24/7, captures leads, and books appointments. Built for local service businesses.',
     images: [`${siteUrl}/og-image.png`],
     creator: '@pivotai',
   },

@@ -117,7 +117,7 @@ export default function DemoPage() {
             Request a Free Demo
           </h1>
           <p className="text-slate-300 text-lg max-w-xl mx-auto">
-            See Pivot AI answer a real call for your business. Setup takes 24 hours
+            See Pivot AI answer a real call for your business. Founder-led setup
             and there&apos;s no credit card required to start.
           </p>
         </div>
@@ -132,7 +132,7 @@ export default function DemoPage() {
                     <CheckCircle2 className="h-8 w-8 text-green-600" aria-hidden="true" />
                   </div>
                   <h2 className="text-2xl font-bold text-navy-900 mb-3">
-                    We&apos;ll be in touch within 24 hours!
+                    We&apos;ll be in touch soon!
                   </h2>
                   <p className="text-slate-500 leading-relaxed">
                     Thank you for your interest in Pivot AI. A member of our team will
@@ -332,8 +332,8 @@ export default function DemoPage() {
                     },
                     {
                       icon: Clock,
-                      title: 'Live within 24 hours',
-                      desc: 'If you move forward, your AI is configured and live the next day.',
+                      title: 'Founder-led onboarding',
+                      desc: 'If you move forward, your AI is configured by our founding team.',
                     },
                     {
                       icon: Users,

@@ -27,8 +27,7 @@ export function CTA() {
           </h2>
 
           <p className="text-lg sm:text-xl text-slate-300 leading-relaxed mb-10 max-w-xl mx-auto">
-            Join 200+ local businesses that never miss a customer call. Start your
-            14-day free trial today — no credit card required.
+            Founder-led Early Access. We are onboarding our first pilot customers and working directly with local service businesses.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -57,7 +56,7 @@ export function CTA() {
           </div>
 
           <p className="mt-6 text-sm text-slate-500">
-            14-day free trial · No credit card required · Live in 24 hours
+            Founder-led onboarding · Early access pilots · No credit card required
           </p>
         </div>
       </div>

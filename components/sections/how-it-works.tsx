@@ -6,24 +6,24 @@ const steps = [
     icon: Settings2,
     title: 'We configure your AI Receptionist',
     description:
-      'Tell us about your business — your services, hours, pricing, and common questions. Our team configures your AI receptionist and has it live within 24 hours. No technical knowledge required.',
-    highlight: 'Ready in 24 hours',
+      'Tell us about your business — your services, hours, pricing, and common questions. Our team configures your AI receptionist for your specific needs. No technical knowledge required.',
+    highlight: 'Founder-led setup',
   },
   {
     number: '02',
     icon: Phone,
-    title: 'Every call is answered instantly',
+    title: 'Every call is answered',
     description:
-      'Your existing phone number routes to Pivot AI. Every call is answered in under 2 seconds, 24/7 — nights, weekends, and holidays included. Callers hear a professional, natural-sounding AI voice.',
-    highlight: '< 2 second response',
+      'Your existing phone number routes to Pivot AI. Every call is answered 24/7 — nights, weekends, and holidays included. Callers hear a professional, natural-sounding AI voice.',
+    highlight: '24/7 Availability',
   },
   {
     number: '03',
     icon: TrendingUp,
-    title: 'You capture every lead automatically',
+    title: 'You capture leads automatically',
     description:
-      'The AI books appointments, captures contact details, answers questions, and notifies you immediately by email and SMS. Every conversation is logged, every lead is saved. Nothing falls through the cracks.',
-    highlight: '100% lead capture',
+      'The AI books appointments, captures contact details, and notifies you immediately by email and SMS. Every conversation is logged, and leads are saved so you can follow up.',
+    highlight: 'Automated lead capture',
   },
 ]
 
@@ -37,10 +37,10 @@ export function HowItWorks() {
             How It Works
           </p>
           <h2 className="text-4xl sm:text-5xl font-bold text-navy-900 mb-5 text-balance">
-            Set up in 24 hours. Never miss a call again.
+            Simple setup. Never miss a call again.
           </h2>
           <p className="text-lg text-slate-500 leading-relaxed">
-            Getting started with Pivot AI is simple. We handle the heavy lifting
+            Getting started with Pivot AI is simple. We handle the configuration
             so you can focus on running your business.
           </p>
         </div>

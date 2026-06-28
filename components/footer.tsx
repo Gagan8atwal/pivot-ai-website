@@ -31,7 +31,7 @@ export function Footer() {
             </div>
             <p className="text-slate-400 text-sm leading-relaxed max-w-xs">
               AI-powered phone receptionist for local service businesses. 
-              Answer every call, capture every lead, book every appointment — 24/7.
+              Answer calls 24/7, capture leads, and book appointments.
             </p>
             <div className="mt-6 space-y-2">
               <a

@@ -5,7 +5,7 @@ const faqItems = [
   {
     question: 'How long does setup take?',
     answer:
-      'Most businesses are live within 24 hours. You fill out a brief onboarding form with your business details, services, hours, and FAQs. We configure your AI receptionist and hand it back to you fully tested and ready to answer calls.',
+      'We work to get your business live as quickly as possible. You fill out a brief onboarding form with your business details, services, hours, and FAQs. Our founding team configures your AI receptionist and works with you to ensure it is ready to answer calls.',
   },
   {
     question: 'Will it work with my existing phone number?',
