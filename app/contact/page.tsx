@@ -6,21 +6,23 @@ import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
 import { Input, Textarea, Label } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { CheckCircle2, Mail, MapPin, Clock } from 'lucide-react'
+import { CheckCircle2, Mail, MapPin, Clock, AlertCircle } from 'lucide-react'
 
 interface ContactForm {
   name: string
   email: string
   subject: string
   message: string
+  company_website: string // Honeypot
 }
 
-const initialForm: ContactForm = { name: '', email: '', subject: '', message: '' }
+const initialForm: ContactForm = { name: '', email: '', subject: '', message: '', company_website: '' }
 
 export default function ContactPage() {
   const [form, setForm] = React.useState<ContactForm>(initialForm)
   const [submitted, setSubmitted] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
+  const [error, setError] = React.useState<string | null>(null)
 
   const canSubmit = form.name.trim() && form.email.trim() && form.message.trim()
 
@@ -29,15 +31,36 @@ export default function ContactPage() {
   ) {
     const { name, value } = e.target
     setForm((prev) => ({ ...prev, [name]: value }))
+    if (error) setError(null)
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!canSubmit) return
+    
     setLoading(true)
-    await new Promise((r) => setTimeout(r, 1000))
-    setLoading(false)
-    setSubmitted(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Something went wrong. Please try again.')
+      }
+
+      setSubmitted(true)
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Something went wrong. Please try again.'
+      setError(errorMsg)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -72,6 +95,27 @@ export default function ContactPage() {
                   noValidate
                 >
                   <h2 className="text-xl font-bold text-navy-900 mb-1">Send a message</h2>
+
+                  {error && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-3 text-sm">
+                      <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                      <p>{error}</p>
+                    </div>
+                  )}
+
+                  {/* Honeypot */}
+                  <div className="hidden">
+                    <label htmlFor="company_website">Company Website</label>
+                    <input
+                      id="company_website"
+                      name="company_website"
+                      type="text"
+                      value={form.company_website}
+                      onChange={handleChange}
+                      tabIndex={-1}
+                      autoComplete="off"
+                    />
+                  </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div className="space-y-1.5">

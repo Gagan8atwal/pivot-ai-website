@@ -5,7 +5,7 @@ import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
 import { Input, Textarea, Label, Select, Checkbox } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { CheckCircle2, Phone, Mail, Clock, Users } from 'lucide-react'
+import { CheckCircle2, Phone, Mail, Clock, Users, AlertCircle } from 'lucide-react'
 
 const industries = [
   'HVAC & Mechanical',
@@ -36,6 +36,7 @@ interface FormState {
   employees: string
   message: string
   consent: boolean
+  company_website: string // Honeypot
 }
 
 const initialState: FormState = {
@@ -47,12 +48,14 @@ const initialState: FormState = {
   employees: '',
   message: '',
   consent: false,
+  company_website: '',
 }
 
 export default function DemoPage() {
   const [form, setForm] = React.useState<FormState>(initialState)
   const [submitted, setSubmitted] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
+  const [error, setError] = React.useState<string | null>(null)
 
   const canSubmit =
     form.consent &&
@@ -69,16 +72,36 @@ export default function DemoPage() {
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
     }))
+    if (error) setError(null)
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!canSubmit) return
+    
     setLoading(true)
-    // Simulate submission — wire up to your email service or API here
-    await new Promise((r) => setTimeout(r, 1200))
-    setLoading(false)
-    setSubmitted(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/demo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Something went wrong. Please try again.')
+      }
+
+      setSubmitted(true)
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Something went wrong. Please try again.'
+      setError(errorMsg)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -129,6 +152,27 @@ export default function DemoPage() {
                   <p className="text-sm text-slate-500 pb-2">
                     We&apos;ll use this to configure your demo and get in touch.
                   </p>
+
+                  {error && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-3 text-sm">
+                      <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                      <p>{error}</p>
+                    </div>
+                  )}
+
+                  {/* Honeypot */}
+                  <div className="hidden">
+                    <label htmlFor="company_website">Company Website</label>
+                    <input
+                      id="company_website"
+                      name="company_website"
+                      type="text"
+                      value={form.company_website}
+                      onChange={handleChange}
+                      tabIndex={-1}
+                      autoComplete="off"
+                    />
+                  </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div className="space-y-1.5">
