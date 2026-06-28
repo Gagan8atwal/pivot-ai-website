@@ -35,11 +35,11 @@ export function Footer() {
             </p>
             <div className="mt-6 space-y-2">
               <a
-                href="mailto:hello@pivotai.app"
+                href="mailto:gagan.s.atwal@gmail.com"
                 className="flex items-center gap-2 text-sm text-slate-400 hover:text-amber-400 transition-colors"
               >
                 <Mail className="h-4 w-4" aria-hidden="true" />
-                hello@pivotai.app
+                gagan.s.atwal@gmail.com
               </a>
               <div className="flex items-center gap-2 text-sm text-slate-400">
                 <MapPin className="h-4 w-4" aria-hidden="true" />

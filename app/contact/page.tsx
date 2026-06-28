@@ -190,8 +190,8 @@ export default function ContactPage() {
                   {
                     icon: Mail,
                     label: 'Email',
-                    value: 'hello@pivotai.app',
-                    href: 'mailto:hello@pivotai.app',
+                    value: 'gagan.s.atwal@gmail.com',
+                    href: 'mailto:gagan.s.atwal@gmail.com',
                   },
                   {
                     icon: MapPin,
