@@ -38,7 +38,7 @@ const industries = [
   {
     icon: Heart,
     name: 'Healthcare & Dental',
-    description: 'Appointment scheduling, patient intake, and after-hours coverage — HIPAA-aware.',
+    description: 'Appointment scheduling, patient intake, and after-hours coverage for clinics and practices.',
   },
   {
     icon: Sprout,

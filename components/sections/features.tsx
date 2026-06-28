@@ -37,7 +37,7 @@ const features = [
     icon: RefreshCw,
     title: 'Google Calendar Sync',
     description:
-      'Real-time two-way sync with Google Calendar. No manual entry, no double bookings, no missed appointments.',
+      'Syncs booked appointments to Google Calendar. No manual entry, no double bookings, no missed appointments.',
   },
   {
     icon: Smartphone,
@@ -55,7 +55,7 @@ const features = [
     icon: GitFork,
     title: 'Smart Call Routing',
     description:
-      'Intelligently routes callers based on intent, availability, and urgency. Transfer to live staff when needed.',
+      'Intelligently routes callers based on intent, availability, and urgency.',
   },
   {
     icon: BookOpen,
@@ -71,9 +71,9 @@ const features = [
   },
   {
     icon: Globe,
-    title: 'Multi-language',
+    title: 'English-Language AI',
     description:
-      'Serve more customers by answering calls in English, Spanish, and additional languages — seamlessly.',
+      'Natural, professional call handling in English. Spanish and additional languages are on our roadmap.',
   },
   {
     icon: LayoutDashboard,

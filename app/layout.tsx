@@ -8,7 +8,7 @@ const inter = Inter({
   display: 'swap',
 })
 
-const siteUrl = 'https://pivotai.app'
+const siteUrl = 'https://pivot-ai-web.vercel.app'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
