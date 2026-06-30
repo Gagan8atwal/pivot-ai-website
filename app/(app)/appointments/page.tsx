@@ -22,7 +22,7 @@ import {
 } from '@/components/app/states'
 import { useApi } from '@/lib/use-api'
 import { api, asArray, isApiConfigured, type Appointment } from '@/lib/api'
-import { formatDateTime, statusTone, titleCase } from '@/lib/format'
+import { appointmentStart, formatDateTime, statusTone, titleCase } from '@/lib/format'
 
 export default function AppointmentsPage() {
   const appts = useApi(() => api.appointments.list().then((r) => asArray<Appointment>(r)), [])
@@ -38,12 +38,22 @@ export default function AppointmentsPage() {
 
   const all = appts.data ?? []
   const now = Date.now()
+  const startMs = (a: Appointment) => {
+    const s = appointmentStart(a)
+    return s ? new Date(s).getTime() : NaN
+  }
   const upcoming = all
-    .filter((a) => (a.start_at ? new Date(a.start_at).getTime() >= now : false))
-    .sort((a, b) => new Date(a.start_at ?? 0).getTime() - new Date(b.start_at ?? 0).getTime())
+    .filter((a) => {
+      const t = startMs(a)
+      return !Number.isNaN(t) && t >= now
+    })
+    .sort((a, b) => startMs(a) - startMs(b))
   const past = all
-    .filter((a) => (a.start_at ? new Date(a.start_at).getTime() < now : true))
-    .sort((a, b) => new Date(b.start_at ?? 0).getTime() - new Date(a.start_at ?? 0).getTime())
+    .filter((a) => {
+      const t = startMs(a)
+      return Number.isNaN(t) || t < now
+    })
+    .sort((a, b) => startMs(b) - startMs(a))
 
   return (
     <>
@@ -105,7 +115,7 @@ function AppointmentTable({
               <TableRow>
                 <TableHead>When</TableHead>
                 <TableHead>Customer</TableHead>
-                <TableHead className="hidden md:table-cell">Title</TableHead>
+                <TableHead className="hidden md:table-cell">Service</TableHead>
                 <TableHead className="hidden sm:table-cell">Phone</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
@@ -116,15 +126,15 @@ function AppointmentTable({
                   <TableCell className="whitespace-nowrap font-medium">
                     <span className="inline-flex items-center gap-1.5">
                       <Clock className="h-3.5 w-3.5 text-slate-400" />
-                      {formatDateTime(a.start_at)}
+                      {formatDateTime(appointmentStart(a))}
                     </span>
                   </TableCell>
                   <TableCell>{a.customer_name || '—'}</TableCell>
                   <TableCell className="hidden text-slate-500 md:table-cell">
-                    {a.title || '—'}
+                    {a.service || a.title || '—'}
                   </TableCell>
                   <TableCell className="hidden text-slate-500 sm:table-cell">
-                    {a.phone || '—'}
+                    {a.customer_phone || a.phone || '—'}
                   </TableCell>
                   <TableCell>
                     {a.status ? (

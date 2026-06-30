@@ -58,6 +58,7 @@ const LIB = [
   ['lib/api.ts', 'lib/api.ts'],
   ['lib/auth.ts', 'lib/auth.ts'],
   ['lib/url.ts', 'lib/url.ts'],
+  ['lib/parse.ts', 'lib/parse.ts'],
   ['lib/settings-ivr.ts', 'lib/settings-ivr.ts'],
   ['app shell', 'components/app/app-shell.tsx'],
   ['auth provider', 'components/app/auth-provider.tsx'],

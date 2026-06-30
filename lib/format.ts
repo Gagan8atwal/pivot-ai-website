@@ -3,9 +3,24 @@
  * Pure functions — safe on server or client. Never throw on bad input.
  */
 
-import type { Lead } from '@/lib/api'
+import type { Lead, Appointment } from '@/lib/api'
 
 type BadgeTone = 'default' | 'secondary' | 'amber' | 'success' | 'outline'
+
+/**
+ * Best-available appointment start, per the backend contract:
+ * prefer `scheduled_start`, else combine `preferred_date` + `preferred_time`,
+ * else the legacy `start_at`. Returns null when nothing usable is present.
+ */
+export function appointmentStart(
+  a: Pick<Appointment, 'scheduled_start' | 'preferred_date' | 'preferred_time' | 'start_at'>
+): string | null {
+  if (a.scheduled_start) return a.scheduled_start
+  if (a.preferred_date) {
+    return a.preferred_time ? `${a.preferred_date}T${a.preferred_time}` : a.preferred_date
+  }
+  return a.start_at ?? null
+}
 
 export function formatDateTime(value?: string | null): string {
   if (!value) return '—'

@@ -12,6 +12,7 @@
 
 import { getAccessToken } from '@/lib/auth'
 import { normalizeBaseUrl } from '@/lib/url'
+import { pickArray } from '@/lib/parse'
 
 // Strip whitespace + ALL trailing slashes so `${API_BASE}${path}` never yields
 // a double slash (which can produce an invalid request path).
@@ -174,13 +175,20 @@ export interface Lead {
   id: string
   name?: string | null
   phone?: string | null
-  email?: string | null
+  // Contract fields (GET /app/leads → { leads: [...] }):
+  intent?: string | null
+  summary?: string | null
   status?: string | null
+  callback_requested?: boolean | null
+  tags?: string[] | null
+  assigned_to?: string | null
+  created_at?: string | null
+  updated_at?: string | null
+  // Tolerated extras used by some UI (may be absent in the contract):
+  email?: string | null
   stage?: string | null
   source?: string | null
   value?: number | null
-  created_at?: string | null
-  updated_at?: string | null
   [k: string]: unknown
 }
 
@@ -213,12 +221,20 @@ export interface Task {
 
 export interface Appointment {
   id: string
-  title?: string | null
+  // Contract fields (GET /app/appointments → { appointments: [...] }):
   customer_name?: string | null
+  customer_phone?: string | null
+  service?: string | null
+  preferred_date?: string | null
+  preferred_time?: string | null
+  status?: string | null
+  scheduled_start?: string | null
+  created_at?: string | null
+  // Tolerated extras / legacy aliases:
+  title?: string | null
   phone?: string | null
   start_at?: string | null
   end_at?: string | null
-  status?: string | null
   notes?: string | null
   [k: string]: unknown
 }
@@ -328,8 +344,10 @@ export const api = {
   me: () => apiFetch<MeResponse>('/app/me'),
 
   leads: {
+    // GET /app/leads → { leads: [...] }. Unwrap to a plain array so every
+    // consumer (dashboard, CRM, calls) gets a real array, never an object.
     list: (query?: RequestOptions['query']) =>
-      apiFetch<Lead[]>('/app/leads', { query }),
+      apiFetch<unknown>('/app/leads', { query }).then((r) => pickArray<Lead>(r, 'leads')),
     get: (id: string) => apiFetch<Lead>(`/app/leads/${id}`),
     update: (id: string, body: Partial<Lead>) =>
       apiFetch<Lead>(`/app/leads/${id}`, { method: 'PATCH', body }),
@@ -356,8 +374,11 @@ export const api = {
   },
 
   appointments: {
+    // GET /app/appointments → { appointments: [...] }. Unwrap to a plain array.
     list: (query?: RequestOptions['query']) =>
-      apiFetch<Appointment[]>('/app/appointments', { query }),
+      apiFetch<unknown>('/app/appointments', { query }).then((r) =>
+        pickArray<Appointment>(r, 'appointments')
+      ),
   },
 
   settings: {
@@ -420,12 +441,5 @@ export function errorMessage(err: unknown): string {
  * the UI can show an honest empty state rather than crash.
  */
 export function asArray<T>(value: unknown): T[] {
-  if (Array.isArray(value)) return value as T[]
-  if (value && typeof value === 'object') {
-    const obj = value as Record<string, unknown>
-    for (const key of ['data', 'items', 'results', 'leads', 'tasks', 'rows', 'appointments']) {
-      if (Array.isArray(obj[key])) return obj[key] as T[]
-    }
-  }
-  return []
+  return pickArray<T>(value, 'data', 'items', 'results', 'leads', 'tasks', 'rows', 'appointments')
 }

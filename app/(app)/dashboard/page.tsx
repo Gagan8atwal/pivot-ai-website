@@ -24,7 +24,7 @@ import {
 import { useAuth } from '@/components/app/auth-provider'
 import { useApi } from '@/lib/use-api'
 import { api, asArray, isApiConfigured, type Lead, type Appointment } from '@/lib/api'
-import { formatDateTime, formatRelative, leadDisplayName, statusTone } from '@/lib/format'
+import { appointmentStart, formatDateTime, formatRelative, leadDisplayName, statusTone } from '@/lib/format'
 
 export default function DashboardPage() {
   const { me, configured } = useAuth()
@@ -48,10 +48,14 @@ export default function DashboardPage() {
   )
   const upcoming = apptList
     .filter((a) => {
-      const t = a.start_at ? new Date(a.start_at).getTime() : 0
-      return t >= Date.now()
+      const s = appointmentStart(a)
+      return s ? new Date(s).getTime() >= Date.now() : false
     })
-    .sort((a, b) => new Date(a.start_at ?? 0).getTime() - new Date(b.start_at ?? 0).getTime())
+    .sort(
+      (a, b) =>
+        new Date(appointmentStart(a) ?? 0).getTime() -
+        new Date(appointmentStart(b) ?? 0).getTime()
+    )
 
   const businessName = me?.business?.name ?? 'your business'
 
@@ -174,9 +178,9 @@ export default function DashboardPage() {
                       </div>
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium text-navy-900">
-                          {a.title || a.customer_name || 'Appointment'}
+                          {a.customer_name || a.service || a.title || 'Appointment'}
                         </p>
-                        <p className="text-xs text-slate-500">{formatDateTime(a.start_at)}</p>
+                        <p className="text-xs text-slate-500">{formatDateTime(appointmentStart(a))}</p>
                       </div>
                     </li>
                   ))}
