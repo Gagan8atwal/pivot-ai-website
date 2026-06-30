@@ -3,9 +3,6 @@
 import * as React from 'react'
 import {
   Building2,
-  Languages,
-  PhoneForwarded,
-  Clock,
   BookOpen,
   MessageSquare,
   Eye,
@@ -21,39 +18,27 @@ import { Button } from '@/components/ui/button'
 import { Input, Textarea, Label, Checkbox } from '@/components/ui/input'
 import { NotConfiguredState, EmptyState } from '@/components/app/states'
 import { FormError, FormSuccess } from '@/components/app/auth-card'
+import { IvrSettingsEditor } from '@/components/app/ivr-settings'
 import { useAuth } from '@/components/app/auth-provider'
 import { api, can, errorMessage, isApiConfigured } from '@/lib/api'
+import {
+  VS_CARRIERS_IVR_DEFAULTS,
+  buildIvrPayload,
+  validateIvrSettings,
+  type IvrSettings,
+} from '@/lib/settings-ivr'
 
-/* ───────────────── Template model (reusable for any tenant) ───────────────── */
-
-interface LanguageConfig {
-  code: string
-  label: string
-  enabled: boolean
-  greeting: string
-}
-
-interface DepartmentConfig {
-  key: string
-  label: string
-  phone: string
-  warmTransfer: boolean
-}
+/* ───────────────── Extra template fields (beyond the IVR shape) ───────────────── */
 
 interface FaqDraft {
   question: string
   answer: string
 }
 
-interface TenantTemplate {
+interface TemplateExtras {
   businessName: string
   contactPhone: string
   timezone: string
-  aiAnswersFirst: boolean
-  languages: LanguageConfig[]
-  departments: DepartmentConfig[]
-  businessHours: string
-  afterHoursGreeting: string
   faqs: FaqDraft[]
   calendarTemplate: string
   smsTemplate: string
@@ -63,40 +48,10 @@ interface TenantTemplate {
   showCrm: boolean
 }
 
-// Default = VS Carriers Inc. first-customer template.
-const VS_CARRIERS_DEFAULT: TenantTemplate = {
+const VS_EXTRAS_DEFAULT: TemplateExtras = {
   businessName: 'VS Carriers Inc.',
   contactPhone: '',
   timezone: 'America/Toronto',
-  aiAnswersFirst: true,
-  languages: [
-    {
-      code: 'en',
-      label: 'English',
-      enabled: true,
-      greeting: 'Thank you for calling VS Carriers. This is our AI assistant — how can I help you today?',
-    },
-    {
-      code: 'pa',
-      label: 'Punjabi',
-      enabled: true,
-      greeting: 'VS Carriers nu phone karan layi dhanvaad. Main tuhadi kiven madad kar sakda haan?',
-    },
-    {
-      code: 'hi',
-      label: 'Hindi',
-      enabled: true,
-      greeting: 'VS Carriers ko call karne ke liye dhanyavaad. Main aapki kaise madad kar sakta hoon?',
-    },
-  ],
-  departments: [
-    { key: 'dispatch', label: 'Dispatch', phone: '', warmTransfer: true },
-    { key: 'mechanic', label: 'Mechanic', phone: '', warmTransfer: true },
-    { key: 'manager', label: 'Manager', phone: '', warmTransfer: true },
-  ],
-  businessHours: 'Mon–Fri 8:00am–6:00pm\nSat 9:00am–2:00pm\nSun Closed',
-  afterHoursGreeting:
-    "Thanks for calling VS Carriers. We're currently closed. Leave your name, number, and load details and our team will call you back first thing.",
   faqs: [
     { question: 'What areas do you cover?', answer: 'We run loads across Canada and the lower 48 US states.' },
     { question: 'Are you hiring drivers?', answer: 'Yes — we onboard owner-operators and company drivers. I can take your details for the manager.' },
@@ -105,9 +60,9 @@ const VS_CARRIERS_DEFAULT: TenantTemplate = {
   calendarTemplate:
     'Appointment for {{customer_name}} — {{service}} on {{date}} at {{time}}. Phone: {{phone}}.',
   smsTemplate:
-    'Hi {{customer_name}}, this is VS Carriers. Thanks for calling! Reply here with any load details and we\'ll follow up. Reply STOP to opt out.',
+    "Hi {{customer_name}}, this is VS Carriers. Thanks for calling! Reply here with any load details and we'll follow up. Reply STOP to opt out.",
   emailTemplate:
-    'Hi {{customer_name}},\n\nThanks for reaching out to VS Carriers. We\'ve logged your request and a team member will be in touch shortly.\n\n— VS Carriers Dispatch',
+    "Hi {{customer_name}},\n\nThanks for reaching out to VS Carriers. We've logged your request and a team member will be in touch shortly.\n\n— VS Carriers Dispatch",
   showDashboard: true,
   showCallLog: true,
   showCrm: true,
@@ -116,7 +71,9 @@ const VS_CARRIERS_DEFAULT: TenantTemplate = {
 export default function VsCarriersSetupPage() {
   const { me } = useAuth()
   const canConfigure = can.admin(me?.role)
-  const [t, setT] = React.useState<TenantTemplate>(VS_CARRIERS_DEFAULT)
+
+  const [ivr, setIvr] = React.useState<IvrSettings>(() => structuredCloneSafe(VS_CARRIERS_IVR_DEFAULTS))
+  const [extras, setExtras] = React.useState<TemplateExtras>(VS_EXTRAS_DEFAULT)
   const [saving, setSaving] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [success, setSuccess] = React.useState<string | null>(null)
@@ -147,66 +104,42 @@ export default function VsCarriersSetupPage() {
     )
   }
 
-  const set = (patch: Partial<TenantTemplate>) => setT((prev) => ({ ...prev, ...patch }))
-  const setLang = (i: number, patch: Partial<LanguageConfig>) =>
-    setT((prev) => ({
-      ...prev,
-      languages: prev.languages.map((l, idx) => (idx === i ? { ...l, ...patch } : l)),
-    }))
-  const setDept = (i: number, patch: Partial<DepartmentConfig>) =>
-    setT((prev) => ({
-      ...prev,
-      departments: prev.departments.map((d, idx) => (idx === i ? { ...d, ...patch } : d)),
-    }))
+  const setExtra = (patch: Partial<TemplateExtras>) => setExtras((prev) => ({ ...prev, ...patch }))
   const setFaq = (i: number, patch: Partial<FaqDraft>) =>
-    setT((prev) => ({
-      ...prev,
-      faqs: prev.faqs.map((f, idx) => (idx === i ? { ...f, ...patch } : f)),
-    }))
-  const addFaq = () => setT((prev) => ({ ...prev, faqs: [...prev.faqs, { question: '', answer: '' }] }))
+    setExtras((prev) => ({ ...prev, faqs: prev.faqs.map((f, idx) => (idx === i ? { ...f, ...patch } : f)) }))
+  const addFaq = () => setExtras((prev) => ({ ...prev, faqs: [...prev.faqs, { question: '', answer: '' }] }))
   const removeFaq = (i: number) =>
-    setT((prev) => ({ ...prev, faqs: prev.faqs.filter((_, idx) => idx !== i) }))
-
-  const buildSettingsPayload = () => {
-    const enabledLangs = t.languages.filter((l) => l.enabled)
-    const primary = enabledLangs[0]
-    return {
-      business_name: t.businessName,
-      phone: t.contactPhone,
-      timezone: t.timezone,
-      ai_answers_first: t.aiAnswersFirst,
-      greeting: primary?.greeting ?? '',
-      languages: enabledLangs.map((l) => ({ code: l.code, label: l.label, greeting: l.greeting })),
-      menu: t.departments.map((d) => ({
-        key: d.key,
-        label: d.label,
-        phone: d.phone,
-        warm_transfer: d.warmTransfer,
-      })),
-      hours: t.businessHours,
-      after_hours_greeting: t.afterHoursGreeting,
-      templates: {
-        calendar: t.calendarTemplate,
-        sms: t.smsTemplate,
-        email: t.emailTemplate,
-      },
-      visibility: {
-        dashboard: t.showDashboard,
-        call_log: t.showCallLog,
-        crm: t.showCrm,
-      },
-    }
-  }
+    setExtras((prev) => ({ ...prev, faqs: prev.faqs.filter((_, idx) => idx !== i) }))
 
   const provision = async () => {
-    setSaving(true)
     setError(null)
     setSuccess(null)
+    const problems = validateIvrSettings(ivr)
+    if (problems.length > 0) {
+      setError(problems[0])
+      return
+    }
+    setSaving(true)
     try {
-      // 1) Push the full configuration to /app/settings.
-      await api.settings.update(buildSettingsPayload())
+      // 1) Push the IVR/greetings shape + template extras to /app/settings.
+      await api.settings.update({
+        business_name: extras.businessName,
+        phone: extras.contactPhone,
+        timezone: extras.timezone,
+        ...buildIvrPayload(ivr),
+        templates: {
+          calendar: extras.calendarTemplate,
+          sms: extras.smsTemplate,
+          email: extras.emailTemplate,
+        },
+        visibility: {
+          dashboard: extras.showDashboard,
+          call_log: extras.showCallLog,
+          crm: extras.showCrm,
+        },
+      })
       // 2) Seed the knowledge base with the FAQ templates (best-effort).
-      const faqs = t.faqs.filter((f) => f.question.trim() && f.answer.trim())
+      const faqs = extras.faqs.filter((f) => f.question.trim() && f.answer.trim())
       await Promise.allSettled(
         faqs.map((f) =>
           api.knowledge.create({
@@ -219,7 +152,7 @@ export default function VsCarriersSetupPage() {
         )
       )
       setSuccess(
-        `Configuration saved for ${t.businessName}. Settings updated and ${faqs.length} FAQ${faqs.length === 1 ? '' : 's'} seeded.`
+        `Configuration saved for ${extras.businessName}. Settings updated and ${faqs.length} FAQ${faqs.length === 1 ? '' : 's'} seeded.`
       )
     } catch (err) {
       setError(errorMessage(err))
@@ -240,165 +173,115 @@ export default function VsCarriersSetupPage() {
       {success && <div className="mb-4"><FormSuccess message={success} /></div>}
 
       <div className="space-y-6">
-        {/* Business */}
-        <Section icon={Building2} title="Business" description="Identity for this tenant.">
-          <div className="grid gap-4 sm:grid-cols-2">
+        {/* Business identity */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Building2 className="h-5 w-5 text-navy-700" /> Business
+            </CardTitle>
+            <CardDescription>Identity for this tenant.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-1.5">
               <Label htmlFor="biz">Business name</Label>
-              <Input id="biz" value={t.businessName} onChange={(e) => set({ businessName: e.target.value })} />
+              <Input id="biz" value={extras.businessName} onChange={(e) => setExtra({ businessName: e.target.value })} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="tz">Timezone</Label>
-              <Input id="tz" value={t.timezone} onChange={(e) => set({ timezone: e.target.value })} />
+              <Input id="tz" value={extras.timezone} onChange={(e) => setExtra({ timezone: e.target.value })} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="cphone">Main contact phone</Label>
               <Input
                 id="cphone"
-                value={t.contactPhone}
-                onChange={(e) => set({ contactPhone: e.target.value })}
-                placeholder="+1 555 000 0000"
+                value={extras.contactPhone}
+                onChange={(e) => setExtra({ contactPhone: e.target.value })}
+                placeholder="+15555550123"
               />
             </div>
-            <div className="flex items-end pb-1">
-              <Checkbox
-                id="answers-first"
-                checked={t.aiAnswersFirst}
-                onChange={(e) => set({ aiAnswersFirst: e.target.checked })}
-                label="AI answers first, then warm-transfers when needed"
-              />
-            </div>
-          </div>
-        </Section>
+          </CardContent>
+        </Card>
 
-        {/* Languages */}
-        <Section
-          icon={Languages}
-          title="Languages & greetings"
-          description="Per-language greeting the caller hears. English, Punjabi, and Hindi are pre-configured."
-        >
-          <div className="space-y-4">
-            {t.languages.map((lang, i) => (
-              <div key={lang.code} className="rounded-lg border border-slate-200 p-4">
-                <div className="mb-2 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary">{lang.label}</Badge>
-                    <span className="text-xs uppercase text-slate-400">{lang.code}</span>
-                  </div>
-                  <Checkbox
-                    id={`lang-${lang.code}`}
-                    checked={lang.enabled}
-                    onChange={(e) => setLang(i, { enabled: e.target.checked })}
-                    label="Enabled"
-                  />
-                </div>
-                <Textarea
-                  value={lang.greeting}
-                  disabled={!lang.enabled}
-                  onChange={(e) => setLang(i, { greeting: e.target.value })}
-                  rows={2}
-                  placeholder={`${lang.label} greeting`}
-                />
-              </div>
-            ))}
-          </div>
-        </Section>
-
-        {/* Main menu / departments */}
-        <Section
-          icon={PhoneForwarded}
-          title="Main menu & warm transfer"
-          description="Departments the caller can reach. Phone numbers are placeholders until provisioned."
-        >
-          <div className="space-y-3">
-            {t.departments.map((d, i) => (
-              <div key={d.key} className="grid items-center gap-3 sm:grid-cols-[120px_1fr_auto]">
-                <Badge variant="default" className="w-fit capitalize">{d.label}</Badge>
-                <Input
-                  value={d.phone}
-                  onChange={(e) => setDept(i, { phone: e.target.value })}
-                  placeholder={`${d.label} phone (placeholder)`}
-                />
-                <Checkbox
-                  id={`wt-${d.key}`}
-                  checked={d.warmTransfer}
-                  onChange={(e) => setDept(i, { warmTransfer: e.target.checked })}
-                  label="Warm transfer"
-                />
-              </div>
-            ))}
-          </div>
-        </Section>
-
-        {/* Hours */}
-        <Section icon={Clock} title="Business hours & after-hours" description="Used to decide live transfer vs. after-hours handling.">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="hours">Business hours</Label>
-              <Textarea id="hours" value={t.businessHours} onChange={(e) => set({ businessHours: e.target.value })} rows={4} />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="afterhours">After-hours greeting</Label>
-              <Textarea id="afterhours" value={t.afterHoursGreeting} onChange={(e) => set({ afterHoursGreeting: e.target.value })} rows={4} />
-            </div>
-          </div>
-        </Section>
+        {/* Greetings / IVR / departments / hours / holidays — shared editor */}
+        <IvrSettingsEditor value={ivr} onChange={setIvr} />
 
         {/* Knowledge / FAQs */}
-        <Section icon={BookOpen} title="Knowledge base (FAQs)" description="Seed answers for common caller questions. Saved to the knowledge base on apply.">
-          <div className="space-y-3">
-            {t.faqs.map((f, i) => (
-              <div key={i} className="rounded-lg border border-slate-200 p-4">
-                <div className="mb-2 flex items-center gap-2">
-                  <Input
-                    value={f.question}
-                    onChange={(e) => setFaq(i, { question: e.target.value })}
-                    placeholder="Question"
-                    className="flex-1"
-                  />
-                  <button
-                    onClick={() => removeFaq(i)}
-                    className="rounded-md p-2 text-slate-400 hover:bg-red-50 hover:text-red-600"
-                    aria-label="Remove FAQ"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <BookOpen className="h-5 w-5 text-navy-700" /> Knowledge base (FAQs)
+            </CardTitle>
+            <CardDescription>
+              Seed answers for common caller questions. Saved to the knowledge base on apply.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {extras.faqs.map((f, i) => (
+                <div key={i} className="rounded-lg border border-slate-200 p-4">
+                  <div className="mb-2 flex items-center gap-2">
+                    <Input
+                      value={f.question}
+                      onChange={(e) => setFaq(i, { question: e.target.value })}
+                      placeholder="Question"
+                      className="flex-1"
+                    />
+                    <button
+                      onClick={() => removeFaq(i)}
+                      className="rounded-md p-2 text-slate-400 hover:bg-red-50 hover:text-red-600"
+                      aria-label="Remove FAQ"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <Textarea value={f.answer} onChange={(e) => setFaq(i, { answer: e.target.value })} placeholder="Answer" rows={2} />
                 </div>
-                <Textarea value={f.answer} onChange={(e) => setFaq(i, { answer: e.target.value })} placeholder="Answer" rows={2} />
-              </div>
-            ))}
-            <Button variant="outline-navy" size="sm" onClick={addFaq}>
-              <Plus className="mr-1 h-4 w-4" /> Add FAQ
-            </Button>
-          </div>
-        </Section>
+              ))}
+              <Button variant="outline-navy" size="sm" onClick={addFaq}>
+                <Plus className="mr-1 h-4 w-4" /> Add FAQ
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Templates */}
-        <Section icon={MessageSquare} title="Calendar, SMS & email templates" description="Message templates. {{placeholders}} are filled by the backend.">
-          <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <MessageSquare className="h-5 w-5 text-navy-700" /> Calendar, SMS & email templates
+            </CardTitle>
+            <CardDescription>Message templates. {`{{placeholders}}`} are filled by the backend.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="cal">Calendar / appointment template</Label>
-              <Textarea id="cal" value={t.calendarTemplate} onChange={(e) => set({ calendarTemplate: e.target.value })} rows={2} />
+              <Textarea id="cal" value={extras.calendarTemplate} onChange={(e) => setExtra({ calendarTemplate: e.target.value })} rows={2} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="sms">SMS follow-up template</Label>
-              <Textarea id="sms" value={t.smsTemplate} onChange={(e) => set({ smsTemplate: e.target.value })} rows={3} />
+              <Textarea id="sms" value={extras.smsTemplate} onChange={(e) => setExtra({ smsTemplate: e.target.value })} rows={3} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="email">Email follow-up template</Label>
-              <Textarea id="email" value={t.emailTemplate} onChange={(e) => set({ emailTemplate: e.target.value })} rows={4} />
+              <Textarea id="email" value={extras.emailTemplate} onChange={(e) => setExtra({ emailTemplate: e.target.value })} rows={4} />
             </div>
-          </div>
-        </Section>
+          </CardContent>
+        </Card>
 
         {/* Visibility */}
-        <Section icon={Eye} title="Workspace visibility" description="What this tenant sees in their app.">
-          <div className="space-y-3">
-            <Checkbox id="vis-dash" checked={t.showDashboard} onChange={(e) => set({ showDashboard: e.target.checked })} label="Dashboard" />
-            <Checkbox id="vis-calls" checked={t.showCallLog} onChange={(e) => set({ showCallLog: e.target.checked })} label="Call log" />
-            <Checkbox id="vis-crm" checked={t.showCrm} onChange={(e) => set({ showCrm: e.target.checked })} label="CRM" />
-          </div>
-        </Section>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Eye className="h-5 w-5 text-navy-700" /> Workspace visibility
+            </CardTitle>
+            <CardDescription>What this tenant sees in their app.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Checkbox id="vis-dash" checked={extras.showDashboard} onChange={(e) => setExtra({ showDashboard: e.target.checked })} label="Dashboard" />
+            <Checkbox id="vis-calls" checked={extras.showCallLog} onChange={(e) => setExtra({ showCallLog: e.target.checked })} label="Call log" />
+            <Checkbox id="vis-crm" checked={extras.showCrm} onChange={(e) => setExtra({ showCrm: e.target.checked })} label="CRM" />
+          </CardContent>
+        </Card>
 
         <div className="flex flex-col items-end gap-2">
           <Button onClick={provision} disabled={saving} size="lg" variant="amber">
@@ -413,9 +296,9 @@ export default function VsCarriersSetupPage() {
             )}
           </Button>
           <p className="text-xs text-slate-400">
-            Posts this template to <code className="rounded bg-slate-100 px-1">/app/settings</code> and
-            seeds FAQs into <code className="rounded bg-slate-100 px-1">/app/knowledge</code> for the
-            current tenant.
+            Posts greetings/IVR/departments/hours to{' '}
+            <code className="rounded bg-slate-100 px-1">/app/settings</code> and seeds FAQs into{' '}
+            <code className="rounded bg-slate-100 px-1">/app/knowledge</code> for the current tenant.
           </p>
         </div>
       </div>
@@ -423,26 +306,15 @@ export default function VsCarriersSetupPage() {
   )
 }
 
-function Section({
-  icon: Icon,
-  title,
-  description,
-  children,
-}: {
-  icon: React.ComponentType<{ className?: string }>
-  title: string
-  description?: string
-  children: React.ReactNode
-}) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Icon className="h-5 w-5 text-amber-500" /> {title}
-        </CardTitle>
-        {description && <CardDescription>{description}</CardDescription>}
-      </CardHeader>
-      <CardContent>{children}</CardContent>
-    </Card>
-  )
+/** Deep-clone the defaults so edits never mutate the shared template object. */
+function structuredCloneSafe(value: IvrSettings): IvrSettings {
+  return {
+    ...value,
+    greetings: { ...value.greetings },
+    after_hours_greeting: { ...value.after_hours_greeting },
+    holiday_greeting: { ...value.holiday_greeting },
+    holidays: [...value.holidays],
+    departments: value.departments.map((d) => ({ ...d })),
+    operating_hours: { ...value.operating_hours },
+  }
 }

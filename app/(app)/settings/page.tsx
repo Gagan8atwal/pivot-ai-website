@@ -11,6 +11,7 @@ import {
   Lock,
   CheckCircle2,
   XCircle,
+  PhoneForwarded,
 } from 'lucide-react'
 import { PageHeader } from '@/components/app/page-header'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -26,6 +27,14 @@ import { FormError, FormSuccess } from '@/components/app/auth-card'
 import { useAuth } from '@/components/app/auth-provider'
 import { useApi } from '@/lib/use-api'
 import { api, can, errorMessage, isApiConfigured, type Settings } from '@/lib/api'
+import { IvrSettingsEditor } from '@/components/app/ivr-settings'
+import {
+  normalizeIvrSettings,
+  buildIvrPayload,
+  validateIvrSettings,
+  emptyIvrSettings,
+  type IvrSettings,
+} from '@/lib/settings-ivr'
 
 function str(v: unknown): string {
   return typeof v === 'string' ? v : v == null ? '' : String(v)
@@ -49,8 +58,17 @@ export default function SettingsPage() {
   const [error, setError] = React.useState<string | null>(null)
   const [success, setSuccess] = React.useState<string | null>(null)
 
+  // IVR / greetings sub-form (own load + validate + save).
+  const [ivr, setIvr] = React.useState<IvrSettings>(emptyIvrSettings())
+  const [ivrSaving, setIvrSaving] = React.useState(false)
+  const [ivrError, setIvrError] = React.useState<string | null>(null)
+  const [ivrSuccess, setIvrSuccess] = React.useState<string | null>(null)
+
   React.useEffect(() => {
-    if (settings.data) setForm(settings.data)
+    if (settings.data) {
+      setForm(settings.data)
+      setIvr(normalizeIvrSettings(settings.data))
+    }
   }, [settings.data])
 
   if (!isApiConfigured) {
@@ -103,6 +121,26 @@ export default function SettingsPage() {
       setError(errorMessage(err))
     } finally {
       setSaving(false)
+    }
+  }
+
+  const saveIvr = async () => {
+    setIvrError(null)
+    setIvrSuccess(null)
+    const problems = validateIvrSettings(ivr)
+    if (problems.length > 0) {
+      setIvrError(problems[0])
+      return
+    }
+    setIvrSaving(true)
+    try {
+      await api.settings.update(buildIvrPayload(ivr))
+      setIvrSuccess('Greetings & IVR saved.')
+      settings.refetch()
+    } catch (err) {
+      setIvrError(errorMessage(err))
+    } finally {
+      setIvrSaving(false)
     }
   }
 
@@ -175,6 +213,33 @@ export default function SettingsPage() {
                 placeholder="123 Main St, City, Province"
               />
             </div>
+          </CardContent>
+        </Card>
+
+        {/* AI receptionist & IVR (editable; greetings/departments/hours/holidays) */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <PhoneForwarded className="h-5 w-5 text-navy-700" /> AI receptionist & IVR
+              {!canEdit && <Badge variant="secondary" className="ml-1">Read-only</Badge>}
+            </CardTitle>
+            <CardDescription>
+              Greetings (English / Punjabi / Hindi), the phone menu, transfer behaviour, operating
+              hours, and holidays the AI uses when answering calls.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            {ivrError && <FormError message={ivrError} />}
+            {ivrSuccess && <FormSuccess message={ivrSuccess} />}
+            <IvrSettingsEditor value={ivr} onChange={setIvr} readOnly={!canEdit} />
+            {canEdit && (
+              <div className="flex justify-end">
+                <Button onClick={saveIvr} disabled={ivrSaving}>
+                  <Save className="mr-1.5 h-4 w-4" />
+                  {ivrSaving ? 'Saving…' : 'Save greetings & IVR'}
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 
