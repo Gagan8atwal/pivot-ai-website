@@ -13,9 +13,15 @@
  */
 
 import { createClient, type SupabaseClient, type Session } from '@supabase/supabase-js'
+import { normalizeOrigin } from '@/lib/url'
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+// Normalize the env values: a trailing slash or stray whitespace on
+// NEXT_PUBLIC_SUPABASE_URL makes supabase-js build a malformed path
+// (`https://ref.supabase.co//auth/v1/...`), which the Supabase gateway rejects
+// with "Invalid path specified in request URL" on app load. Reduce to a bare
+// origin so the client tolerates a misconfigured value.
+const SUPABASE_URL = normalizeOrigin(process.env.NEXT_PUBLIC_SUPABASE_URL)
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() || ''
 
 export const isSupabaseConfigured = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY)
 

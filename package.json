@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node scripts/smoke-routes.mjs && node scripts/settings-ivr.test.mjs"
+    "test": "node scripts/smoke-routes.mjs && node scripts/url.test.mjs && node scripts/settings-ivr.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.0",

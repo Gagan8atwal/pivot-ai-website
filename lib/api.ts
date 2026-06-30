@@ -11,12 +11,15 @@
  */
 
 import { getAccessToken } from '@/lib/auth'
+import { normalizeBaseUrl } from '@/lib/url'
 
+// Strip whitespace + ALL trailing slashes so `${API_BASE}${path}` never yields
+// a double slash (which can produce an invalid request path).
 export const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE?.replace(/\/$/, '') ||
+  normalizeBaseUrl(process.env.NEXT_PUBLIC_API_BASE) ||
   'https://ai-receptionist-voice.onrender.com'
 
-export const isApiConfigured = Boolean(process.env.NEXT_PUBLIC_API_BASE)
+export const isApiConfigured = Boolean(process.env.NEXT_PUBLIC_API_BASE?.trim())
 
 // ─── Error type ───────────────────────────────────────────────────────────────
 export class ApiError extends Error {
