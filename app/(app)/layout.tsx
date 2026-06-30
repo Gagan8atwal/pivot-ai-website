@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
+// Authenticated, data-driven pages — never statically prerendered.
+export const dynamic = 'force-dynamic'
+
 export default function AppGroupLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
