@@ -8,7 +8,7 @@ const inter = Inter({
   display: 'swap',
 })
 
-const siteUrl = 'https://pivot-ai-web.vercel.app'
+const siteUrl = 'https://pivotcalls.co'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -40,21 +40,14 @@ export const metadata: Metadata = {
     description:
       'Pivot AI answers calls 24/7, captures leads, and books appointments. Built for local service businesses.',
     siteName: 'Pivot AI',
-    images: [
-      {
-        url: `${siteUrl}/og-image.png`,
-        width: 1200,
-        height: 630,
-        alt: 'Pivot AI — Never Miss Another Customer Call',
-      },
-    ],
+    // Image supplied by app/opengraph-image.tsx (generated PNG).
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Pivot AI — AI Receptionist for Local Businesses',
     description:
       'Pivot AI answers calls 24/7, captures leads, and books appointments. Built for local service businesses.',
-    images: [`${siteUrl}/og-image.png`],
+    // Image supplied by app/twitter-image.tsx (generated PNG).
     creator: '@pivotai',
   },
   robots: {
@@ -68,11 +61,7 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  icons: {
-    icon: '/favicon.svg',
-    shortcut: '/favicon.svg',
-    apple: '/apple-touch-icon.png',
-  },
+  // Icons supplied by app/icon.svg and app/apple-icon.tsx (file conventions).
 }
 
 export const viewport: Viewport = {

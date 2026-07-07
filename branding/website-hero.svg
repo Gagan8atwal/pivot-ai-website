@@ -1,0 +1,73 @@
+<!-- Pivot AI — website hero graphic. 720×560. An abstract "call → captured" flow for the marketing hero. Editable. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 560" width="720" height="560" role="img" aria-label="Pivot AI answers, captures, and books">
+  <defs>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#132C55"/>
+      <stop offset="1" stop-color="#0E1B2C"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#0E1B2C" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Phone device -->
+  <g filter="url(#soft)">
+    <rect x="60" y="60" width="300" height="440" rx="40" fill="url(#card)"/>
+    <rect x="76" y="76" width="268" height="408" rx="28" fill="#0B1626"/>
+    <!-- Incoming call card -->
+    <rect x="96" y="110" width="228" height="96" rx="16" fill="#132C55"/>
+    <circle cx="130" cy="158" r="20" fill="#F59E0B"/>
+    <path d="M137 165c-1.1 0-2.2-.2-3.2-.6-.3-.1-.7-.1-.9.2l-1.2 1.5c-1.9-1-3.4-2.5-4.4-4.4l1.5-1.2c.3-.2.3-.6.2-.9-.4-1-.6-2.1-.6-3.2 0-.4-.3-.7-.7-.7h-2.4c-.4 0-.7.3-.7.7 0 6.6 5.4 12 12 12 .4 0 .7-.3.7-.7v-2.4c0-.4-.3-.7-.7-.7z" fill="#0E1B2C"/>
+    <rect x="164" y="146" width="120" height="10" rx="5" fill="#AAC2DD"/>
+    <rect x="164" y="164" width="80" height="8" rx="4" fill="#4F7AB9"/>
+    <!-- AI answering waveform -->
+    <g stroke="#F59E0B" stroke-width="5" stroke-linecap="round">
+      <line x1="120" y1="270" x2="120" y2="300"/>
+      <line x1="140" y1="255" x2="140" y2="315"/>
+      <line x1="160" y1="240" x2="160" y2="330"/>
+      <line x1="180" y1="258" x2="180" y2="312"/>
+      <line x1="200" y1="272" x2="200" y2="298"/>
+      <line x1="220" y1="250" x2="220" y2="320"/>
+      <line x1="240" y1="264" x2="240" y2="306"/>
+      <line x1="260" y1="278" x2="260" y2="292"/>
+    </g>
+    <text x="210" y="380" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="600" fill="#AAC2DD">Pivot AI is answering…</text>
+  </g>
+
+  <!-- Outcome cards flowing to the right -->
+  <g font-family="Inter, Arial, sans-serif">
+    <!-- Lead captured -->
+    <g filter="url(#soft)">
+      <rect x="410" y="96" width="270" height="96" rx="18" fill="#FFFFFF"/>
+      <circle cx="446" cy="144" r="20" fill="#EAF7EE"/>
+      <path d="M439 144l5 5 9-10" fill="none" stroke="#16A34A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="478" y="138" font-size="17" font-weight="700" fill="#0E1B2C">Lead captured</text>
+      <text x="478" y="162" font-size="13" fill="#64748B">Name · phone · reason for call</text>
+    </g>
+    <!-- Appointment booked -->
+    <g filter="url(#soft)">
+      <rect x="410" y="232" width="270" height="96" rx="18" fill="#FFFFFF"/>
+      <circle cx="446" cy="280" r="20" fill="#FEF3E2"/>
+      <rect x="438" y="272" width="16" height="14" rx="2" fill="none" stroke="#F59E0B" stroke-width="2.5"/>
+      <line x1="438" y1="277" x2="454" y2="277" stroke="#F59E0B" stroke-width="2.5"/>
+      <text x="478" y="274" font-size="17" font-weight="700" fill="#0E1B2C">Appointment booked</text>
+      <text x="478" y="298" font-size="13" fill="#64748B">Synced to Google Calendar</text>
+    </g>
+    <!-- Confirmation sent -->
+    <g filter="url(#soft)">
+      <rect x="410" y="368" width="270" height="96" rx="18" fill="#FFFFFF"/>
+      <circle cx="446" cy="416" r="20" fill="#E9EEF9"/>
+      <path d="M436 410h20v12h-20z" fill="none" stroke="#3260A3" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M436 410l10 7 10-7" fill="none" stroke="#3260A3" stroke-width="2.5" stroke-linejoin="round"/>
+      <text x="478" y="410" font-size="17" font-weight="700" fill="#0E1B2C">Confirmation sent</text>
+      <text x="478" y="434" font-size="13" fill="#64748B">SMS + email to the customer</text>
+    </g>
+  </g>
+
+  <!-- Connectors -->
+  <g stroke="#F59E0B" stroke-width="2.5" fill="none" opacity="0.7">
+    <path d="M360 150c30 0 30 -6 50 -6"/>
+    <path d="M360 280h50"/>
+    <path d="M360 410c30 0 30 6 50 6"/>
+  </g>
+</svg>

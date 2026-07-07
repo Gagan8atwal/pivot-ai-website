@@ -1,0 +1,28 @@
+<!-- Pivot AI — US Letter letterhead (8.5"×11" @ ~96dpi = 816×1056). Editable source; body area is a placeholder guide. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 816 1056" width="816" height="1056" role="img" aria-label="Pivot AI letterhead">
+  <rect width="816" height="1056" fill="#FFFFFF"/>
+  <!-- Header -->
+  <g transform="translate(64 56)">
+    <rect width="52" height="52" rx="13" fill="#0E1B2C"/>
+    <g transform="translate(10 10) scale(0.66)">
+      <path d="M41 43c-2.2 0-4.4-.4-6.4-1.2-.6-.2-1.4-.2-1.8.4l-3.8 4.8c-5.6-2.8-10-7.2-12.8-12.8l4.8-3.8c.6-.6.6-1.2.4-1.8-.8-2-1.2-4.2-1.2-6.4 0-1.2-.8-2-2-2H13c-1.2 0-2 .8-2 2 0 16.6 13.4 30 30 30 1.2 0 2-.8 2-2v-5c0-1.2-.8-2-2-2z" fill="#F59E0B"/>
+    </g>
+    <text x="66" y="36" font-family="Inter, Arial, sans-serif" font-size="26" font-weight="800" letter-spacing="-0.5" fill="#0E1B2C">Pivot<tspan fill="#F59E0B"> AI</tspan></text>
+  </g>
+  <text x="752" y="82" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="13" fill="#64748B">pivotcalls.co</text>
+  <text x="752" y="100" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="13" fill="#64748B">hello@pivotcalls.co</text>
+  <line x1="64" y1="128" x2="752" y2="128" stroke="#E2E8F0" stroke-width="2"/>
+
+  <!-- Body placeholder guide -->
+  <g font-family="Inter, Arial, sans-serif" fill="#94A3B8" font-size="14">
+    <text x="64" y="200">[ Date ]</text>
+    <text x="64" y="248">[ Recipient name ]</text>
+    <text x="64" y="270">[ Company / address ]</text>
+    <text x="64" y="330">Dear [ name ],</text>
+    <text x="64" y="378">[ Body copy — set in Inter / Arial 11pt, #0E1B2C, 1.5 line height. ]</text>
+  </g>
+
+  <!-- Footer accent -->
+  <rect x="0" y="1012" width="816" height="6" fill="#F59E0B"/>
+  <text x="408" y="1040" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="12" fill="#64748B">Pivot AI · The 24/7 AI receptionist for local service businesses · pivotcalls.co</text>
+</svg>

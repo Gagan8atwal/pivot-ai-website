@@ -1,0 +1,28 @@
+<!-- Pivot AI — Open Graph MASTER (editable source). 1200×630.
+     The live OG is generated to PNG by app/opengraph-image.tsx; this is the
+     hand-editable design companion. Export to PNG at 1200×630 if a static file is needed. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-label="Pivot AI — Never miss another customer call">
+  <defs>
+    <linearGradient id="ogbg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0E1B2C"/>
+      <stop offset="1" stop-color="#132C55"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#ogbg)"/>
+  <path d="M1200 220a300 300 0 0 0-470 70" fill="none" stroke="#F59E0B" stroke-width="3" opacity="0.2"/>
+  <!-- Mark + wordmark -->
+  <g transform="translate(72 64)">
+    <rect x="1" y="1" width="94" height="94" rx="24" fill="#0E1B2C" stroke="#F59E0B" stroke-width="2"/>
+    <g transform="translate(16 16)">
+      <path d="M41 43c-2.2 0-4.4-.4-6.4-1.2-.6-.2-1.4-.2-1.8.4l-3.8 4.8c-5.6-2.8-10-7.2-12.8-12.8l4.8-3.8c.6-.6.6-1.2.4-1.8-.8-2-1.2-4.2-1.2-6.4 0-1.2-.8-2-2-2H13c-1.2 0-2 .8-2 2 0 16.6 13.4 30 30 30 1.2 0 2-.8 2-2v-5c0-1.2-.8-2-2-2z" fill="#F59E0B"/>
+    </g>
+    <text x="120" y="66" font-family="Inter, Arial, sans-serif" font-size="52" font-weight="700" letter-spacing="-1" fill="#FFFFFF">Pivot<tspan fill="#F59E0B"> AI</tspan></text>
+  </g>
+  <!-- Headline -->
+  <text x="72" y="360" font-family="Inter, Arial, sans-serif" font-size="82" font-weight="800" letter-spacing="-2" fill="#FFFFFF">Never miss another</text>
+  <text x="72" y="450" font-family="Inter, Arial, sans-serif" font-size="82" font-weight="800" letter-spacing="-2" fill="#F59E0B">customer call.</text>
+  <text x="72" y="512" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="500" fill="#AAC2DD">A 24/7 AI receptionist that answers, captures leads, and books appointments.</text>
+  <!-- Footer -->
+  <text x="72" y="586" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="600" fill="#FFFFFF">pivotcalls.co</text>
+  <text x="1128" y="586" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="24" fill="#7A9ECB">24/7 · Multilingual · Calendar-synced</text>
+</svg>

@@ -1,0 +1,41 @@
+<!-- Pivot AI — business card, front + back. US 3.5"×2" @300dpi = 1050×600, plus 0.125" bleed noted.
+     Two artboards stacked (front on top, back below). Replace {{...}} placeholders per person. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 1260" width="1050" height="1260" role="img" aria-label="Pivot AI business card">
+  <!-- ===================== FRONT ===================== -->
+  <g>
+    <rect width="1050" height="600" fill="#FFFFFF"/>
+    <!-- Left navy band -->
+    <rect width="360" height="600" fill="#0E1B2C"/>
+    <path d="M360 120a180 180 0 0 0-300 60" fill="none" stroke="#F59E0B" stroke-width="3" opacity="0.25"/>
+    <!-- Mark centered in band -->
+    <g transform="translate(128 232)">
+      <rect x="1" y="1" width="102" height="102" rx="26" fill="#0E1B2C" stroke="#F59E0B" stroke-width="2"/>
+      <g transform="translate(18 18) scale(1.06)">
+        <path d="M41 43c-2.2 0-4.4-.4-6.4-1.2-.6-.2-1.4-.2-1.8.4l-3.8 4.8c-5.6-2.8-10-7.2-12.8-12.8l4.8-3.8c.6-.6.6-1.2.4-1.8-.8-2-1.2-4.2-1.2-6.4 0-1.2-.8-2-2-2H13c-1.2 0-2 .8-2 2 0 16.6 13.4 30 30 30 1.2 0 2-.8 2-2v-5c0-1.2-.8-2-2-2z" fill="#F59E0B"/>
+      </g>
+    </g>
+    <!-- Right: person -->
+    <text x="410" y="230" font-family="Inter, Arial, sans-serif" font-size="46" font-weight="800" fill="#0E1B2C">{{Full Name}}</text>
+    <text x="412" y="278" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="600" letter-spacing="1" fill="#F59E0B">{{Title}}</text>
+    <line x1="412" y1="312" x2="700" y2="312" stroke="#E2E8F0" stroke-width="2"/>
+    <g font-family="Inter, Arial, sans-serif" font-size="24" fill="#334155">
+      <text x="412" y="372">{{name@pivotcalls.co}}</text>
+      <text x="412" y="418">{{+1 (555) 000-0000}}</text>
+      <text x="412" y="464" font-weight="700" fill="#0E1B2C">pivotcalls.co</text>
+    </g>
+  </g>
+
+  <!-- ===================== BACK ===================== -->
+  <g transform="translate(0 660)">
+    <rect width="1050" height="600" fill="#0E1B2C"/>
+    <path d="M1050 200a300 300 0 0 0-500 80" fill="none" stroke="#F59E0B" stroke-width="3" opacity="0.18"/>
+    <g transform="translate(360 210)">
+      <rect x="1" y="1" width="120" height="120" rx="30" fill="#0E1B2C" stroke="#F59E0B" stroke-width="2"/>
+      <g transform="translate(22 22) scale(1.25)">
+        <path d="M41 43c-2.2 0-4.4-.4-6.4-1.2-.6-.2-1.4-.2-1.8.4l-3.8 4.8c-5.6-2.8-10-7.2-12.8-12.8l4.8-3.8c.6-.6.6-1.2.4-1.8-.8-2-1.2-4.2-1.2-6.4 0-1.2-.8-2-2-2H13c-1.2 0-2 .8-2 2 0 16.6 13.4 30 30 30 1.2 0 2-.8 2-2v-5c0-1.2-.8-2-2-2z" fill="#F59E0B"/>
+      </g>
+    </g>
+    <text x="525" y="400" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="44" font-weight="800" fill="#FFFFFF">Pivot<tspan fill="#F59E0B"> AI</tspan></text>
+    <text x="525" y="446" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="22" fill="#AAC2DD">Never miss another customer call.</text>
+  </g>
+</svg>

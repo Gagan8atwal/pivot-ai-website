@@ -1,0 +1,21 @@
+<!-- Pivot AI — X / Twitter header. 1500×500. Note: profile avatar overlaps lower-left ~ (0-330,270-500), keep that zone clear. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 500" width="1500" height="500" role="img" aria-label="Pivot AI X banner">
+  <defs>
+    <linearGradient id="bgx" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0E1B2C"/>
+      <stop offset="1" stop-color="#132C55"/>
+    </linearGradient>
+  </defs>
+  <rect width="1500" height="500" fill="url(#bgx)"/>
+  <path d="M1500 160a300 300 0 0 0-480 70" fill="none" stroke="#F59E0B" stroke-width="3" opacity="0.22"/>
+  <!-- Content kept to upper/right, clear of avatar zone -->
+  <g transform="translate(470 150)">
+    <rect x="1" y="1" width="78" height="78" rx="20" fill="#0E1B2C" stroke="#F59E0B" stroke-width="2"/>
+    <g transform="translate(8 8)">
+      <path d="M41 43c-2.2 0-4.4-.4-6.4-1.2-.6-.2-1.4-.2-1.8.4l-3.8 4.8c-5.6-2.8-10-7.2-12.8-12.8l4.8-3.8c.6-.6.6-1.2.4-1.8-.8-2-1.2-4.2-1.2-6.4 0-1.2-.8-2-2-2H13c-1.2 0-2 .8-2 2 0 16.6 13.4 30 30 30 1.2 0 2-.8 2-2v-5c0-1.2-.8-2-2-2z" fill="#F59E0B"/>
+    </g>
+  </g>
+  <text x="570" y="185" font-family="Inter, Arial, sans-serif" font-size="54" font-weight="800" letter-spacing="-1.5" fill="#FFFFFF">Pivot<tspan fill="#F59E0B"> AI</tspan></text>
+  <text x="573" y="232" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="500" fill="#AAC2DD">Never miss another customer call.</text>
+  <text x="960" y="470" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" letter-spacing="1" fill="#7A9ECB">pivotcalls.co</text>
+</svg>
