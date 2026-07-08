@@ -68,11 +68,14 @@ function buildDescription(i: DemoEventInput): string {
 export async function createDemoCalendarEvent(
   input: DemoEventInput
 ): Promise<CalendarResult> {
-  const clientId = process.env.GOOGLE_CLIENT_ID
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET
-  const redirectUri = process.env.GOOGLE_REDIRECT_URI // recommended, not required for refresh
-  const refreshToken = process.env.GOOGLE_REFRESH_TOKEN
-  const calendarId = process.env.GOOGLE_CALENDAR_ID
+  // .trim() every value: a trailing newline/space pasted into Vercel is a very
+  // common cause of `invalid_client` at the token endpoint (and of malformed
+  // calendar ids). Trimming here makes the flow robust to that.
+  const clientId = process.env.GOOGLE_CLIENT_ID?.trim()
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim()
+  const redirectUri = process.env.GOOGLE_REDIRECT_URI?.trim() // recommended, not required for refresh
+  const refreshToken = process.env.GOOGLE_REFRESH_TOKEN?.trim()
+  const calendarId = process.env.GOOGLE_CALENDAR_ID?.trim()
 
   const missing: string[] = []
   if (!clientId) missing.push('GOOGLE_CLIENT_ID')
@@ -149,9 +152,22 @@ export async function createDemoCalendarEvent(
     }
     return { status: 'created', eventId: data.id, htmlLink: data.htmlLink ?? null }
   } catch (err) {
-    const e = err as { message?: string; code?: number | string }
-    const reason =
-      (e?.code ? `[${e.code}] ` : '') + (e?.message || 'Unknown Calendar API error')
+    // OAuth token-exchange failures (getAccessToken) are GaxiosErrors whose
+    // response body carries { error, error_description } — e.g.
+    // { error: 'invalid_client', error_description: 'The OAuth client was not found.' }.
+    // Surface both so the exact cause is visible next time. These fields never
+    // contain secret values (no client_id/secret/token is echoed back).
+    const e = err as {
+      message?: string
+      code?: number | string
+      response?: { data?: { error?: string; error_description?: string } }
+    }
+    const oauth = e?.response?.data
+    const detail =
+      oauth?.error || oauth?.error_description
+        ? [oauth?.error, oauth?.error_description].filter(Boolean).join(': ')
+        : e?.message || 'Unknown Calendar API error'
+    const reason = (e?.code ? `[${e.code}] ` : '') + detail
     return { status: 'failed', reason }
   }
 }
