@@ -112,13 +112,8 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
-  if (!consent) {
-    console.warn("[demo] validation: FAIL — consent not given");
-    return NextResponse.json(
-      { error: "You must agree to receive communications." },
-      { status: 400 }
-    );
-  }
+  // SMS consent is OPTIONAL (A2P: must be voluntary). We do NOT reject when it's
+  // unchecked — we record the actual value below (sms_consent: consent).
   if (email && !isValidEmail(email)) {
     console.warn("[demo] validation: FAIL — invalid email format");
     return NextResponse.json(
@@ -157,7 +152,11 @@ export async function POST(request: Request) {
     phone,
     industry:               industry || null,
     notes,
-    sms_consent:            true,
+    // Authoritative flag: the actual checkbox value (consent is now optional).
+    sms_consent:            consent,
+    // Capture context of what was presented on the form. The boolean above is the
+    // source of truth for whether SMS is permitted; these record the exact language
+    // and request metadata shown at submit time.
     sms_consent_method:     "web_form",
     sms_consent_text:       SMS_CONSENT_TEXT,
     sms_consent_at:         new Date().toISOString(),
@@ -189,7 +188,7 @@ export async function POST(request: Request) {
     industry,
     employees,
     message,
-    smsConsent: true,
+    smsConsent: consent,
   };
 
   // ── 6. Google Calendar (best-effort, structured, never throws) ────────────

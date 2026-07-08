@@ -57,8 +57,10 @@ export default function DemoPage() {
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
+  // SMS consent is OPTIONAL (A2P: consent must be voluntary, not a condition of
+  // submitting). The checkbox no longer gates submission; the API records whether
+  // it was checked. Business/contact/email/phone remain required.
   const canSubmit =
-    form.consent &&
     form.businessName.trim() &&
     form.contactName.trim() &&
     form.email.trim() &&
