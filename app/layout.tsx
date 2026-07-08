@@ -70,6 +70,34 @@ export const viewport: Viewport = {
   initialScale: 1,
 }
 
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Pivot AI',
+  applicationCategory: 'BusinessApplication',
+  description:
+    'AI-powered phone receptionist for local service businesses. Answers calls 24/7, captures leads, and books appointments.',
+  url: siteUrl,
+  operatingSystem: 'Web',
+  offers: [
+    { '@type': 'Offer', price: '49', priceCurrency: 'USD', name: 'Starter' },
+    { '@type': 'Offer', price: '149', priceCurrency: 'USD', name: 'Pro' },
+    { '@type': 'Offer', price: '299', priceCurrency: 'USD', name: 'Premium' },
+  ],
+  provider: {
+    '@type': 'Organization',
+    name: 'Pivot AI',
+    legalName: 'AL Logistics LLC',
+    url: siteUrl,
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'Fresno',
+      addressRegion: 'CA',
+      addressCountry: 'US',
+    },
+  },
+}
+
 export default function RootLayout({
   children,
 }: {
@@ -77,6 +105,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={inter.variable}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className="min-h-screen font-sans">{children}</body>
     </html>
   )

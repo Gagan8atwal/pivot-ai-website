@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = 'https://pivotai.app'
+  const base = 'https://pivotcalls.co'
   const now = new Date()
 
   return [

@@ -31,8 +31,8 @@ export default function PrivacyPage() {
                   website visitors, and call participants. This Privacy Policy explains how we
                   collect, use, disclose, and safeguard your information when you use our
                   website at{' '}
-                  <a href="https://pivotai.app" className="text-amber-600 hover:underline">
-                    pivotai.app
+                  <a href="https://pivotcalls.co" className="text-amber-600 hover:underline">
+                    pivotcalls.co
                   </a>{' '}
                   and our AI receptionist services.
                 </p>

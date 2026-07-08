@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: '/api/',
     },
-    sitemap: 'https://pivotai.app/sitemap.xml',
+    sitemap: 'https://pivotcalls.co/sitemap.xml',
   }
 }
