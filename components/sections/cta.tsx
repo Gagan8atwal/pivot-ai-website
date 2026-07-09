@@ -1,6 +1,12 @@
 import Link from 'next/link'
-import { ArrowRight, Phone } from 'lucide-react'
+import { ArrowRight, Phone, CheckCircle2, Shield, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+
+const reassurances = [
+  { icon: Shield, text: 'No credit card required' },
+  { icon: Clock, text: '14-day free trial included' },
+  { icon: CheckCircle2, text: 'Cancel anytime — no contract' },
+]
 
 export function CTA() {
   return (
@@ -22,13 +28,28 @@ export function CTA() {
             <Phone className="h-8 w-8 text-navy-900" aria-hidden="true" />
           </div>
 
+          <p className="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-4">
+            Founder-led early access — limited pilot spots
+          </p>
+
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight text-balance">
             Ready to answer every call?
           </h2>
 
-          <p className="text-lg sm:text-xl text-slate-300 leading-relaxed mb-10 max-w-xl mx-auto">
-            Founder-led Early Access. We are onboarding our first pilot customers and working directly with local service businesses.
+          <p className="text-lg sm:text-xl text-slate-300 leading-relaxed mb-4 max-w-xl mx-auto">
+            We are actively onboarding our first cohort of service businesses. Every pilot customer
+            gets direct access to the founding team and hands-on setup.
           </p>
+
+          {/* Objection handling */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-x-8 gap-y-3 mb-10">
+            {reassurances.map(({ icon: Icon, text }) => (
+              <div key={text} className="flex items-center gap-2 text-sm text-slate-400">
+                <Icon className="h-4 w-4 text-amber-400 flex-shrink-0" aria-hidden="true" />
+                <span>{text}</span>
+              </div>
+            ))}
+          </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/demo">
@@ -55,8 +76,14 @@ export function CTA() {
             </Link>
           </div>
 
-          <p className="mt-6 text-sm text-slate-500">
-            Founder-led onboarding · Early access pilots · No credit card required
+          <p className="mt-8 text-sm text-slate-500">
+            Questions? Email us at{' '}
+            <a
+              href="mailto:hello@pivotcalls.co"
+              className="text-slate-400 hover:text-amber-400 transition-colors underline underline-offset-2"
+            >
+              hello@pivotcalls.co
+            </a>
           </p>
         </div>
       </div>
