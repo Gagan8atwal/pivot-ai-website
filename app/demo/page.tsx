@@ -5,7 +5,17 @@ import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
 import { Input, Textarea, Label, Select, Checkbox } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { CheckCircle2, Phone, Mail, Clock, Users, AlertCircle } from 'lucide-react'
+import {
+  CheckCircle2,
+  Phone,
+  Mail,
+  Clock,
+  Users,
+  AlertCircle,
+  Shield,
+  Calendar,
+  ArrowRight,
+} from 'lucide-react'
 
 const industries = [
   'HVAC & Mechanical',
@@ -51,6 +61,29 @@ const initialState: FormState = {
   company_website: '',
 }
 
+const nextSteps = [
+  {
+    step: '1',
+    title: 'Submit this form',
+    desc: 'Takes under 2 minutes. No credit card or commitment needed.',
+  },
+  {
+    step: '2',
+    title: 'A founder calls you',
+    desc: 'We personally review every request and follow up within 1 business day.',
+  },
+  {
+    step: '3',
+    title: 'Live demo for your industry',
+    desc: 'Watch Pivot AI answer a real call tailored to your business. About 30 minutes.',
+  },
+  {
+    step: '4',
+    title: '14-day free trial with full setup',
+    desc: 'We configure your AI receptionist. No billing until you decide to continue.',
+  },
+]
+
 export default function DemoPage() {
   const [form, setForm] = React.useState<FormState>(initialState)
   const [submitted, setSubmitted] = React.useState(false)
@@ -80,7 +113,7 @@ export default function DemoPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!canSubmit) return
-    
+
     setLoading(true)
     setError(null)
 
@@ -113,15 +146,28 @@ export default function DemoPage() {
         {/* Hero bar */}
         <div className="bg-navy-900 py-14 text-center">
           <p className="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-3">
-            14-Day Free Trial
+            Founder-led Early Access
           </p>
           <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4 text-balance">
-            Request a Free Demo
+            See Pivot AI Answer a Real Call<br className="hidden sm:block" /> for Your Business
           </h1>
-          <p className="text-slate-300 text-lg max-w-xl mx-auto">
-            See Pivot AI answer a real call for your business. Founder-led setup
-            and there&apos;s no credit card required to start.
+          <p className="text-slate-300 text-lg max-w-xl mx-auto mb-7">
+            Fill out this 2-minute form. A founder personally reviews every request and
+            follows up within 1 business day — no sales team, no runaround.
           </p>
+          {/* Quick trust bar */}
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-slate-400">
+            {[
+              { icon: Clock, text: 'Response within 1 business day' },
+              { icon: Shield, text: 'No credit card required' },
+              { icon: CheckCircle2, text: '14-day free trial included' },
+            ].map(({ icon: Icon, text }) => (
+              <div key={text} className="flex items-center gap-1.5">
+                <Icon className="h-4 w-4 text-amber-400 flex-shrink-0" aria-hidden="true" />
+                <span>{text}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="container mx-auto px-4 lg:px-8 py-14">
@@ -134,14 +180,36 @@ export default function DemoPage() {
                     <CheckCircle2 className="h-8 w-8 text-green-600" aria-hidden="true" />
                   </div>
                   <h2 className="text-2xl font-bold text-navy-900 mb-3">
-                    We&apos;ll be in touch soon!
+                    You&apos;re on the list!
                   </h2>
-                  <p className="text-slate-500 leading-relaxed">
-                    Thank you for your interest in Pivot AI. A member of our team will
-                    reach out to schedule your personalized demo shortly.
+                  <p className="text-slate-500 leading-relaxed mb-6">
+                    A founder will personally review your request and reach out to{' '}
+                    <strong>{form.email}</strong> within 1 business day to schedule your demo.
                   </p>
-                  <p className="text-sm text-slate-400 mt-4">
-                    Check your inbox at <strong>{form.email}</strong> for confirmation.
+                  {/* What happens next */}
+                  <div className="text-left bg-slate-50 rounded-xl p-5 space-y-4">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                      What happens next
+                    </p>
+                    {[
+                      { icon: Mail, text: 'Confirmation email on its way to your inbox' },
+                      { icon: Phone, text: 'A founder calls within 1 business day' },
+                      { icon: Calendar, text: 'Live 30-min demo tailored to your industry' },
+                      { icon: CheckCircle2, text: '14-day free trial — no credit card needed' },
+                    ].map(({ icon: Icon, text }) => (
+                      <div key={text} className="flex items-center gap-3">
+                        <div className="h-7 w-7 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                          <Icon className="h-3.5 w-3.5 text-amber-700" aria-hidden="true" />
+                        </div>
+                        <p className="text-sm text-slate-600">{text}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-slate-400 mt-5">
+                    Questions? Email us at{' '}
+                    <a href="mailto:hello@pivotcalls.co" className="text-navy-900 underline hover:text-amber-600">
+                      hello@pivotcalls.co
+                    </a>
                   </p>
                 </div>
               ) : (
@@ -150,20 +218,22 @@ export default function DemoPage() {
                   className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 space-y-5"
                   noValidate
                 >
-                  <h2 className="text-xl font-bold text-navy-900 mb-1">Your Information</h2>
-                  <p className="text-sm text-slate-500 pb-2">
-                    We&apos;ll use this to configure your demo and get in touch.
-                  </p>
+                  <div>
+                    <h2 className="text-xl font-bold text-navy-900 mb-1">Your Information</h2>
+                    <p className="text-sm text-slate-500">
+                      We&apos;ll use this to configure your demo and get in touch.
+                    </p>
+                  </div>
 
                   {error && (
                     <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-3 text-sm">
-                      <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                      <AlertCircle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
                       <p>{error}</p>
                     </div>
                   )}
 
                   {/* Honeypot */}
-                  <div className="hidden">
+                  <div className="hidden" aria-hidden="true">
                     <label htmlFor="company_website">Company Website</label>
                     <input
                       id="company_website"
@@ -178,7 +248,7 @@ export default function DemoPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div className="space-y-1.5">
-                      <Label htmlFor="businessName">Business Name *</Label>
+                      <Label htmlFor="businessName">Business Name <span className="text-red-500" aria-label="required">*</span></Label>
                       <Input
                         id="businessName"
                         name="businessName"
@@ -190,7 +260,7 @@ export default function DemoPage() {
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label htmlFor="contactName">Your Name *</Label>
+                      <Label htmlFor="contactName">Your Name <span className="text-red-500" aria-label="required">*</span></Label>
                       <Input
                         id="contactName"
                         name="contactName"
@@ -205,7 +275,7 @@ export default function DemoPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div className="space-y-1.5">
-                      <Label htmlFor="email">Work Email *</Label>
+                      <Label htmlFor="email">Work Email <span className="text-red-500" aria-label="required">*</span></Label>
                       <Input
                         id="email"
                         name="email"
@@ -218,7 +288,7 @@ export default function DemoPage() {
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label htmlFor="phone">Business Phone *</Label>
+                      <Label htmlFor="phone">Business Phone <span className="text-red-500" aria-label="required">*</span></Label>
                       <Input
                         id="phone"
                         name="phone"
@@ -266,7 +336,7 @@ export default function DemoPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="message">Tell us about your business (optional)</Label>
+                    <Label htmlFor="message">Tell us about your business <span className="text-slate-400 font-normal">(optional)</span></Label>
                     <Textarea
                       id="message"
                       name="message"
@@ -277,8 +347,8 @@ export default function DemoPage() {
                     />
                   </div>
 
-                  {/* Consent */}
-                  <div className="pt-2">
+                  {/* SMS Consent — optional per A2P compliance */}
+                  <div className="pt-1">
                     <Checkbox
                       id="consent"
                       name="consent"
@@ -286,9 +356,9 @@ export default function DemoPage() {
                       onChange={handleChange}
                       label={
                         <>
-                          I agree to receive communications from Pivot AI about my demo
-                          request, including text messages. Message and data rates may apply.
-                          Reply STOP to opt out at any time. See our{' '}
+                          I agree to receive SMS updates from Pivot AI about my demo request.
+                          Message and data rates may apply. Reply STOP to opt out at any time.
+                          See our{' '}
                           <a href="/privacy" className="text-navy-900 underline hover:text-amber-600">
                             Privacy Policy
                           </a>{' '}
@@ -296,71 +366,69 @@ export default function DemoPage() {
                           <a href="/terms" className="text-navy-900 underline hover:text-amber-600">
                             Terms of Service
                           </a>
-                          . *
+                          .
                         </>
                       }
                     />
+                    <p className="text-xs text-slate-400 mt-1.5 ml-7">
+                      SMS consent is optional and not required to submit this form.
+                    </p>
+                  </div>
+
+                  {/* Privacy reassurance */}
+                  <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 rounded-lg px-3 py-2.5">
+                    <Shield className="h-3.5 w-3.5 text-slate-400 flex-shrink-0" aria-hidden="true" />
+                    <span>Your information is never shared. No spam, no sales pressure — just a real conversation with our founding team.</span>
                   </div>
 
                   <Button
                     type="submit"
                     variant="amber"
                     size="lg"
-                    className="w-full mt-2"
+                    className="w-full mt-1 group"
                     disabled={!canSubmit || loading}
                   >
-                    {loading ? 'Submitting…' : 'Request Your Free Demo'}
+                    {loading ? 'Submitting…' : (
+                      <>
+                        Get My Free Demo
+                        <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+                      </>
+                    )}
                   </Button>
 
                   <p className="text-xs text-slate-400 text-center">
-                    * Required for SMS communications. You may opt out at any time.
+                    No credit card required · Cancel anytime · 14-day free trial
                   </p>
                 </form>
               )}
             </div>
 
-            {/* Right: Benefits */}
+            {/* Right: What happens next + trust */}
             <div className="lg:col-span-2 space-y-6">
+              {/* Numbered steps */}
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
                 <h3 className="text-base font-bold text-navy-900 mb-5">
-                  What to expect
+                  What happens next
                 </h3>
-                <div className="space-y-4">
-                  {[
-                    {
-                      icon: Phone,
-                      title: 'Personalized demo call',
-                      desc: 'We walk you through Pivot AI live, tailored to your industry.',
-                    },
-                    {
-                      icon: Clock,
-                      title: 'Founder-led onboarding',
-                      desc: 'If you move forward, your AI is configured by our founding team.',
-                    },
-                    {
-                      icon: Users,
-                      title: 'Dedicated onboarding',
-                      desc: 'We set up your knowledge base, FAQs, and call flows for you.',
-                    },
-                    {
-                      icon: Mail,
-                      title: '14-day free trial',
-                      desc: 'No credit card required. Cancel anytime with zero hassle.',
-                    },
-                  ].map(({ icon: Icon, title, desc }) => (
-                    <div key={title} className="flex items-start gap-3">
-                      <div className="h-8 w-8 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
-                        <Icon className="h-4 w-4 text-amber-600" aria-hidden="true" />
+                <ol className="space-y-5">
+                  {nextSteps.map(({ step, title, desc }) => (
+                    <li key={step} className="flex items-start gap-4">
+                      <div
+                        className="h-7 w-7 rounded-full bg-amber-100 text-amber-700 text-sm font-bold flex items-center justify-center flex-shrink-0"
+                        aria-hidden="true"
+                      >
+                        {step}
                       </div>
                       <div>
                         <p className="text-sm font-semibold text-navy-900">{title}</p>
-                        <p className="text-xs text-slate-500 leading-relaxed">{desc}</p>
+                        <p className="text-xs text-slate-500 leading-relaxed mt-0.5">{desc}</p>
                       </div>
-                    </div>
+                    </li>
                   ))}
-                </div>
+                </ol>
               </div>
 
+              {/* Our promise */}
               <div className="bg-navy-900 rounded-2xl p-6 text-white">
                 <p className="text-sm font-semibold text-amber-400 mb-2">Our promise</p>
                 <p className="text-sm text-slate-300 leading-relaxed">
@@ -368,6 +436,40 @@ export default function DemoPage() {
                   we&apos;ll help you figure out why — no questions asked, no
                   billing activated.
                 </p>
+              </div>
+
+              {/* What's included */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                <h3 className="text-sm font-semibold text-navy-900 mb-4">Included in every trial</h3>
+                <ul className="space-y-3">
+                  {[
+                    { icon: Phone, text: 'AI receptionist, configured for your business' },
+                    { icon: Users, text: 'Founder-led onboarding and knowledge base setup' },
+                    { icon: CheckCircle2, text: 'Lead capture, SMS follow-up, call transcripts' },
+                    { icon: Calendar, text: 'Appointment booking with Google Calendar sync' },
+                  ].map(({ icon: Icon, text }) => (
+                    <li key={text} className="flex items-start gap-3">
+                      <div className="h-6 w-6 rounded-md bg-amber-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <Icon className="h-3.5 w-3.5 text-amber-600" aria-hidden="true" />
+                      </div>
+                      <p className="text-xs text-slate-600 leading-relaxed">{text}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Direct contact */}
+              <div className="flex items-center gap-3 px-1">
+                <Mail className="h-4 w-4 text-slate-400 flex-shrink-0" aria-hidden="true" />
+                <div>
+                  <p className="text-xs text-slate-500">Prefer email?</p>
+                  <a
+                    href="mailto:hello@pivotcalls.co"
+                    className="text-sm font-semibold text-navy-900 hover:text-amber-600 transition-colors"
+                  >
+                    hello@pivotcalls.co
+                  </a>
+                </div>
               </div>
             </div>
           </div>

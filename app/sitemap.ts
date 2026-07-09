@@ -1,10 +1,11 @@
 import type { MetadataRoute } from 'next'
+import { industries } from '@/lib/industries'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = 'https://pivotcalls.co'
   const now = new Date()
 
-  return [
+  const corePages: MetadataRoute.Sitemap = [
     {
       url: base,
       lastModified: now,
@@ -36,4 +37,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.3,
     },
   ]
+
+  const industryPages: MetadataRoute.Sitemap = industries.map((ind) => ({
+    url: `${base}/industries/${ind.slug}`,
+    lastModified: now,
+    changeFrequency: 'monthly' as const,
+    priority: 0.8,
+  }))
+
+  return [...corePages, ...industryPages]
 }
