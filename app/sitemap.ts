@@ -38,6 +38,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ]
 
+  const industryIndex: MetadataRoute.Sitemap = [
+    {
+      url: `${base}/industries`,
+      lastModified: now,
+      changeFrequency: 'monthly' as const,
+      priority: 0.85,
+    },
+  ]
+
   const industryPages: MetadataRoute.Sitemap = industries.map((ind) => ({
     url: `${base}/industries/${ind.slug}`,
     lastModified: now,
@@ -45,5 +54,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }))
 
-  return [...corePages, ...industryPages]
+  return [...corePages, ...industryIndex, ...industryPages]
 }
