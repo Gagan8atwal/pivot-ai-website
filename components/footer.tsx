@@ -5,8 +5,25 @@ const productLinks = [
   { label: 'Features', href: '/#features' },
   { label: 'How It Works', href: '/#how-it-works' },
   { label: 'Pricing', href: '/#pricing' },
-  { label: 'Industries', href: '/#industries' },
   { label: 'Request Demo', href: '/demo' },
+]
+
+const industryLinks = [
+  { label: 'HVAC', href: '/industries/hvac' },
+  { label: 'Plumbing', href: '/industries/plumbing' },
+  { label: 'Electrical', href: '/industries/electrical' },
+  { label: 'Roofing', href: '/industries/roofing' },
+  { label: 'Landscaping', href: '/industries/landscaping' },
+  { label: 'Dental', href: '/industries/dental' },
+  { label: 'Medical', href: '/industries/medical' },
+  { label: 'Chiropractic', href: '/industries/chiropractic' },
+  { label: 'Law Firms', href: '/industries/law-firm' },
+  { label: 'Insurance', href: '/industries/insurance' },
+  { label: 'Real Estate', href: '/industries/real-estate' },
+  { label: 'Auto Repair', href: '/industries/automotive' },
+  { label: 'Restaurants', href: '/industries/restaurants' },
+  { label: 'Home Services', href: '/industries/home-services' },
+  { label: 'Trucking', href: '/industries/trucking' },
 ]
 
 const companyLinks = [
@@ -20,9 +37,9 @@ export function Footer() {
     <footer className="bg-navy-900 text-white">
       {/* Main footer */}
       <div className="container mx-auto px-4 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-10">
           {/* Brand column */}
-          <div className="lg:col-span-2">
+          <div className="col-span-2 lg:col-span-2">
             <div className="flex items-center gap-2 mb-4">
               <div className="h-8 w-8 rounded-lg bg-amber-500 flex items-center justify-center flex-shrink-0">
                 <Phone className="h-4 w-4 text-navy-900" aria-hidden="true" />
@@ -30,16 +47,16 @@ export function Footer() {
               <span className="text-xl font-bold">Pivot AI</span>
             </div>
             <p className="text-slate-400 text-sm leading-relaxed max-w-xs">
-              AI-powered phone receptionist for local service businesses. 
+              AI-powered phone receptionist for local service businesses.
               Answer calls 24/7, capture leads, and book appointments.
             </p>
             <div className="mt-6 space-y-2">
               <a
-                href="mailto:gagan.s.atwal@gmail.com"
+                href="mailto:hello@pivotcalls.co"
                 className="flex items-center gap-2 text-sm text-slate-400 hover:text-amber-400 transition-colors"
               >
                 <Mail className="h-4 w-4" aria-hidden="true" />
-                gagan.s.atwal@gmail.com
+                hello@pivotcalls.co
               </a>
               <div className="flex items-center gap-2 text-sm text-slate-400">
                 <MapPin className="h-4 w-4" aria-hidden="true" />
@@ -67,13 +84,13 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Company links */}
-          <div>
+          {/* Industries links — 2-column sub-grid */}
+          <div className="col-span-2 md:col-span-1 lg:col-span-2">
             <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
-              Company
+              Industries
             </h3>
-            <ul className="space-y-3">
-              {companyLinks.map((link) => (
+            <ul className="grid grid-cols-2 gap-x-6 gap-y-3">
+              {industryLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
@@ -84,6 +101,21 @@ export function Footer() {
                 </li>
               ))}
             </ul>
+          </div>
+        </div>
+
+        {/* Company links row */}
+        <div className="mt-10 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex flex-wrap gap-6">
+            {companyLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-sm text-slate-400 hover:text-amber-400 transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
           </div>
         </div>
       </div>

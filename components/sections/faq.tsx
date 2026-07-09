@@ -18,6 +18,21 @@ const faqItems = [
       "Our AI uses Google's most advanced voice technology, which sounds natural and professional. Most callers assume they're speaking with a human receptionist. The AI identifies itself as your 'virtual assistant' if a caller asks directly.",
   },
   {
+    question: 'What if the AI gives wrong information about my business?',
+    answer:
+      "The AI only answers from the knowledge base you provide during onboarding — your services, hours, pricing, and FAQs. It won't guess or make things up. If a caller asks something not covered in your knowledge base, the AI says it doesn't have that information and offers to have someone from your team follow up. You can update your knowledge base at any time.",
+  },
+  {
+    question: 'How is Pivot AI different from a traditional answering service?',
+    answer:
+      'Traditional answering services use human agents who read from a script and pass messages. Pivot AI is a purpose-built AI that knows your business, answers detailed questions, books appointments directly into your calendar, and sends SMS follow-ups — all automatically, 24/7, at a fraction of the cost. No phone tag, no message relays, no hold music.',
+  },
+  {
+    question: 'I\'m a solo operator with low call volume — is Pivot AI right for me?',
+    answer:
+      'Our Starter plan at $49/month is built for solo operators. If you\'re missing even one or two calls a week, the value of a recovered job likely exceeds the monthly subscription. The AI handles calls when you\'re on the job, after hours, or simply unavailable — and the 14-day free trial means you can test it with zero financial risk.',
+  },
+  {
     question: 'What if I want to transfer a caller to a live person?',
     answer:
       'Pivot AI can be configured to transfer calls to you, a team member, or another number at any point in the conversation — based on intent, urgency, or caller request.',
