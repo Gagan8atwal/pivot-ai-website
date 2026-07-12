@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { Resend } from 'resend'
+import { createClient } from "@supabase/supabase-js";
 
 function trim(v: unknown, max: number): string {
   return typeof v === 'string' ? v.trim().slice(0, max) : ''
@@ -7,6 +8,20 @@ function trim(v: unknown, max: number): string {
 
 function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
+
+function splitName(fullName: string): [string, string | null] {
+  const parts = fullName.trim().split(/\s+/)
+  if (parts.length === 1) return [parts[0], null]
+  return [parts[0], parts.slice(1).join(' ')]
+}
+
+function getCrmSupabase() {
+  const url = process.env.SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const ownerId = process.env.DASHBOARD_OWNER_ID
+  if (!url || !key || !ownerId) return null
+  return { client: createClient(url, key, { auth: { persistSession: false } }), ownerId }
 }
 
 export async function POST(req: Request) {
@@ -66,6 +81,31 @@ export async function POST(req: Request) {
     if (error) {
       console.error('[contact] resend error:', error)
       return NextResponse.json({ error: 'Failed to send message' }, { status: 500 })
+    }
+
+    // Best-effort CRM lead insert — never breaks the email response
+    try {
+      const crm = getCrmSupabase()
+      if (crm) {
+        const [firstName, lastName] = splitName(name)
+        const { error: crmErr } = await crm.client.from('crm_leads').insert({
+          user_id:    crm.ownerId,
+          source:     'contact_form',
+          first_name: firstName,
+          last_name:  lastName,
+          email,
+          message:    [subject && `Subject: ${subject}`, message].filter(Boolean).join('\n\n') || null,
+        })
+        if (crmErr) {
+          console.error('[contact] crm_lead_insert: FAIL —', crmErr.message)
+        } else {
+          console.info('[contact] crm_lead_insert: PASS')
+        }
+      } else {
+        console.warn('[contact] crm_lead_insert: SKIPPED — SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, or DASHBOARD_OWNER_ID not set')
+      }
+    } catch (crmEx) {
+      console.error('[contact] crm_lead_insert: FAIL (exception) —', (crmEx as Error).message)
     }
 
     return NextResponse.json({ success: true })

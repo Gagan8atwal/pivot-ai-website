@@ -22,6 +22,21 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
+
+// ─── CRM lead insert helper ───────────────────────────────────────────────────
+function getCrmSupabase() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const ownerId = process.env.DASHBOARD_OWNER_ID;
+  if (!url || !key || !ownerId) return null;
+  return { client: createClient(url, key, { auth: { persistSession: false } }), ownerId };
+}
+
+function splitName(fullName: string): [string, string | null] {
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length === 1) return [parts[0], null];
+  return [parts[0], parts.slice(1).join(" ")];
+}
 import { NextResponse } from "next/server";
 import { createDemoCalendarEvent, type CalendarResult } from "@/lib/google-calendar";
 import {
@@ -178,6 +193,39 @@ export async function POST(request: Request) {
   }
 
   console.info("[demo] supabase_insert: PASS");
+
+  // ── 5b. CRM lead insert (best-effort — never breaks the submission) ────────
+  try {
+    const crm = getCrmSupabase();
+    if (crm) {
+      const [firstName, lastName] = splitName(contactName);
+      const notesParts2: string[] = [];
+      if (employees) notesParts2.push(`Team size: ${employees}`);
+      if (message) notesParts2.push(message);
+      const crmMessage = notesParts2.join("\n\n") || null;
+
+      const { error: crmErr } = await crm.client.from("crm_leads").insert({
+        user_id:       crm.ownerId,
+        source:        "demo_request",
+        first_name:    firstName,
+        last_name:     lastName,
+        email:         email || null,
+        phone:         phone || null,
+        business_name: businessName || null,
+        industry:      industry || null,
+        message:       crmMessage,
+      });
+      if (crmErr) {
+        console.error("[demo] crm_lead_insert: FAIL —", crmErr.message);
+      } else {
+        console.info("[demo] crm_lead_insert: PASS");
+      }
+    } else {
+      console.warn("[demo] crm_lead_insert: SKIPPED — SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, or DASHBOARD_OWNER_ID not set");
+    }
+  } catch (crmEx) {
+    console.error("[demo] crm_lead_insert: FAIL (exception) —", (crmEx as Error).message);
+  }
 
   // Shared payload for calendar + emails.
   const data: DemoEmailData = {
