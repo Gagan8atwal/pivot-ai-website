@@ -135,7 +135,7 @@ If you add server-side form handling, create `.env.local`:
 
 ```
 RESEND_API_KEY=re_...
-FORM_NOTIFICATION_EMAIL=hello@pivotai.app
+FORM_NOTIFICATION_EMAIL=hello@pivotcalls.co
 ```
 
 ---
