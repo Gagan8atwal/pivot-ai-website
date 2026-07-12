@@ -44,6 +44,23 @@ function getSupabase() {
   });
 }
 
+// Single-tenant fallback — safe to inline as it's a non-secret UUID
+const OWNER_ID_FALLBACK = "3fbf8a9e-0185-4445-868b-2b93258080cb";
+
+function getCrmSupabase() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  const ownerId = process.env.DASHBOARD_OWNER_ID ?? OWNER_ID_FALLBACK;
+  return { client: createClient(url, key, { auth: { persistSession: false } }), ownerId };
+}
+
+function splitName(fullName: string): [string, string | null] {
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length === 1) return [parts[0], null];
+  return [parts[0], parts.slice(1).join(" ")];
+}
+
 // ─── Resend ───────────────────────────────────────────────────────────────────
 function getResend() {
   const key = process.env.RESEND_API_KEY;
@@ -178,6 +195,35 @@ export async function POST(request: Request) {
   }
 
   console.info("[demo] supabase_insert: PASS");
+
+  // ── 5b. CRM lead insert (best-effort — never breaks the submission) ────────
+  try {
+    const crm = getCrmSupabase();
+    if (crm) {
+      const [firstName, lastName] = splitName(contactName);
+      const crmMessage = notes || null;
+      const { error: crmErr } = await crm.client.from("crm_leads").insert({
+        user_id:       crm.ownerId,
+        source:        "demo_request",
+        first_name:    firstName,
+        last_name:     lastName,
+        email:         email || null,
+        phone:         phone || null,
+        business_name: businessName || null,
+        industry:      industry || null,
+        message:       crmMessage,
+      });
+      if (crmErr) {
+        console.error("[demo] crm_lead_insert: FAIL —", crmErr.message);
+      } else {
+        console.info("[demo] crm_lead_insert: PASS");
+      }
+    } else {
+      console.warn("[demo] crm_lead_insert: SKIPPED — SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not set");
+    }
+  } catch (crmEx) {
+    console.error("[demo] crm_lead_insert: FAIL (exception) —", (crmEx as Error).message);
+  }
 
   // Shared payload for calendar + emails.
   const data: DemoEmailData = {
