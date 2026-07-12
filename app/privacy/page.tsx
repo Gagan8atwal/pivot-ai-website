@@ -100,8 +100,8 @@ export default function PrivacyPage() {
                 <p className="mt-3">
                   <strong>Help:</strong> Reply <strong>HELP</strong> to any of our messages for
                   assistance, or contact us at{' '}
-                  <a href="mailto:hello@pivotai.app" className="text-amber-600 hover:underline">
-                    hello@pivotai.app
+                  <a href="mailto:hello@pivotcalls.co" className="text-amber-600 hover:underline">
+                    hello@pivotcalls.co
                   </a>
                   .
                 </p>
@@ -182,8 +182,8 @@ export default function PrivacyPage() {
                 </ul>
                 <p className="mt-3">
                   To exercise any of these rights, contact us at{' '}
-                  <a href="mailto:hello@pivotai.app" className="text-amber-600 hover:underline">
-                    hello@pivotai.app
+                  <a href="mailto:hello@pivotcalls.co" className="text-amber-600 hover:underline">
+                    hello@pivotcalls.co
                   </a>
                   .
                 </p>
@@ -217,8 +217,8 @@ export default function PrivacyPage() {
                 <address className="mt-3 not-italic">
                   <strong>Pivot AI · AL Logistics LLC</strong><br />
                   Fresno, California<br />
-                  <a href="mailto:hello@pivotai.app" className="text-amber-600 hover:underline">
-                    hello@pivotai.app
+                  <a href="mailto:hello@pivotcalls.co" className="text-amber-600 hover:underline">
+                    hello@pivotcalls.co
                   </a>
                 </address>
               </section>

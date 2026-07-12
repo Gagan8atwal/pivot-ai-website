@@ -110,8 +110,8 @@ export default function TermsPage() {
               <p>
                 You may cancel your subscription at any time through your account dashboard
                 or by contacting us at{' '}
-                <a href="mailto:hello@pivotai.app" className="text-amber-600 hover:underline">
-                  hello@pivotai.app
+                <a href="mailto:hello@pivotcalls.co" className="text-amber-600 hover:underline">
+                  hello@pivotcalls.co
                 </a>
                 . Cancellation takes effect at the end of your current billing period.
                 We do not charge cancellation fees.
@@ -200,8 +200,8 @@ export default function TermsPage() {
               <address className="not-italic">
                 <strong>Pivot AI · AL Logistics LLC</strong><br />
                 Fresno, California<br />
-                <a href="mailto:hello@pivotai.app" className="text-amber-600 hover:underline">
-                  hello@pivotai.app
+                <a href="mailto:hello@pivotcalls.co" className="text-amber-600 hover:underline">
+                  hello@pivotcalls.co
                 </a>
               </address>
             </section>

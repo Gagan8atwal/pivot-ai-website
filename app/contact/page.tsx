@@ -190,8 +190,8 @@ export default function ContactPage() {
                   {
                     icon: Mail,
                     label: 'Email',
-                    value: 'gagan.s.atwal@gmail.com',
-                    href: 'mailto:gagan.s.atwal@gmail.com',
+                    value: 'hello@pivotcalls.co',
+                    href: 'mailto:hello@pivotcalls.co',
                   },
                   {
                     icon: MapPin,
