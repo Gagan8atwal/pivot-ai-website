@@ -26,12 +26,9 @@ import { useAuth } from '@/components/app/auth-provider'
 import { useApi } from '@/lib/use-api'
 import { api, asArray, can, errorMessage, isApiConfigured, type Billing, type Invoice } from '@/lib/api'
 import { formatDate, formatMoney, titleCase } from '@/lib/format'
-
-const PLANS = [
-  { id: 'starter', name: 'Starter', price: '$99/mo', features: ['1 phone number', '24/7 AI answering', 'Lead capture'] },
-  { id: 'pro', name: 'Pro', price: '$249/mo', features: ['Everything in Starter', 'CRM + pipeline', 'SMS & email follow-up', 'Team seats'] },
-  { id: 'scale', name: 'Scale', price: '$599/mo', features: ['Everything in Pro', 'Multi-language', 'Priority support', 'Advanced routing'] },
-]
+// Plan names, prices and features come from the single source of truth shared
+// with the marketing site — this page used to hardcode its own (wrong) table.
+import { PRICING_PLANS, formatMonthlyPrice } from '@/lib/pricing'
 
 export default function BillingPage() {
   const { me } = useAuth()
@@ -198,7 +195,7 @@ export default function BillingPage() {
       {/* Plans */}
       <h2 className="mb-3 text-lg font-semibold text-navy-900">Plans</h2>
       <div className="grid gap-4 md:grid-cols-3">
-        {PLANS.map((plan) => {
+        {PRICING_PLANS.map((plan) => {
           const isCurrent = currentPlan === plan.id
           return (
             <Card key={plan.id} className={isCurrent ? 'border-navy-900 ring-1 ring-navy-900' : ''}>
@@ -207,7 +204,7 @@ export default function BillingPage() {
                   <CardTitle className="text-lg">{plan.name}</CardTitle>
                   {isCurrent && <Badge variant="amber">Current</Badge>}
                 </div>
-                <p className="text-2xl font-bold text-navy-900">{plan.price}</p>
+                <p className="text-2xl font-bold text-navy-900">{formatMonthlyPrice(plan)}</p>
               </CardHeader>
               <CardContent>
                 <ul className="mb-5 space-y-2">

@@ -3,61 +3,9 @@ import { CheckCircle2, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-
-const plans = [
-  {
-    name: 'Starter',
-    price: 49,
-    period: 'month',
-    description: 'Perfect for solo operators and small businesses just getting started.',
-    callVolume: 'Up to 100 calls/month',
-    features: [
-      'AI receptionist (24/7)',
-      'Lead capture & storage',
-      'SMS notifications',
-      'Email confirmations',
-      'Basic knowledge base',
-      'Call transcripts',
-      'Email support',
-    ],
-    cta: 'Start Free Trial',
-    highlight: false,
-  },
-  {
-    name: 'Pro',
-    price: 149,
-    period: 'month',
-    description: 'The most popular plan for growing businesses that handle high call volume.',
-    callVolume: 'Up to 500 calls/month',
-    features: [
-      'Everything in Starter',
-      'Appointment booking',
-      'Google Calendar sync',
-      'Advanced knowledge base',
-      'Multi-tenant support',
-      'Call analytics dashboard',
-      'Priority email support',
-    ],
-    cta: 'Start Free Trial',
-    highlight: true,
-  },
-  {
-    name: 'Premium',
-    price: 299,
-    period: 'month',
-    description: 'For multi-location businesses that need unlimited capacity and dedicated support.',
-    callVolume: 'Unlimited calls',
-    features: [
-      'Everything in Pro',
-      'Unlimited calls',
-      'Custom AI voice',
-      'Priority support',
-      'Multi-location support',
-    ],
-    cta: 'Contact Sales',
-    highlight: false,
-  },
-]
+// Plan names, prices and features come from the single source of truth so the
+// marketing site and the in-app billing page can never disagree again.
+import { PRICING_PLANS } from '@/lib/pricing'
 
 export function Pricing() {
   return (
@@ -79,9 +27,9 @@ export function Pricing() {
 
         {/* Pricing cards */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          {plans.map((plan) => (
+          {PRICING_PLANS.map((plan) => (
             <div
-              key={plan.name}
+              key={plan.id}
               className={cn(
                 'relative rounded-2xl flex flex-col',
                 plan.highlight
@@ -173,7 +121,7 @@ export function Pricing() {
                 </ul>
 
                 {/* CTA */}
-                <Link href={plan.name === 'Premium' ? '/contact' : '/demo'}>
+                <Link href={plan.ctaHref}>
                   <Button
                     variant={plan.highlight ? 'amber' : 'outline-navy'}
                     size="lg"

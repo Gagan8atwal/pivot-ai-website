@@ -19,6 +19,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const PUBLIC_ROUTES = [
   ['/', 'app/page.tsx'],
   ['/demo', 'app/demo/page.tsx'],
+  ['/pricing', 'app/pricing/page.tsx'],
   ['/contact', 'app/contact/page.tsx'],
   ['/privacy', 'app/privacy/page.tsx'],
   ['/terms', 'app/terms/page.tsx'],
