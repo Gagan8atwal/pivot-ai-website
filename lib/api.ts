@@ -375,6 +375,63 @@ export interface ActivationBlockedBody {
   warnings?: ReadinessIssue[]
 }
 
+// ─── Assistant (GET/POST /app/assistant*) ────────────────────────────────────
+export interface AssistantTool {
+  name: string
+  description?: string | null
+  risk?: string | null
+  [k: string]: unknown
+}
+
+/** What this release of the assistant is allowed to do. Read-only today. */
+export interface AssistantCapabilities {
+  readOnly: boolean
+  canChangeConfiguration: boolean
+  note: string
+}
+
+export interface AssistantOverview {
+  enabled: boolean
+  surface?: string | null
+  capabilities: AssistantCapabilities
+  tools: AssistantTool[]
+}
+
+export interface AssistantConversation {
+  id: string
+  title?: string | null
+  created_at?: string | null
+  updated_at?: string | null
+  [k: string]: unknown
+}
+
+export interface AssistantMessage {
+  id: string
+  role: 'user' | 'assistant' | string
+  content: string
+  /** Backend-provided evidence for a stored reply (tool names, when present). */
+  sources?: unknown
+  created_at?: string | null
+  [k: string]: unknown
+}
+
+export interface AssistantReply {
+  reply: string
+  toolsUsed: string[]
+}
+
+/** One tool invocation from the audit trail — including `refused` runs. */
+export interface AssistantRun {
+  id: string
+  tool_name?: string | null
+  risk_level?: string | null
+  status?: string | null
+  error_class?: string | null
+  started_at?: string | null
+  completed_at?: string | null
+  [k: string]: unknown
+}
+
 // ─── Typed API surface ────────────────────────────────────────────────────────
 export const api = {
   // Auth (token attached only where the contract requires it)
@@ -458,6 +515,35 @@ export const api = {
     /** Throws `ApiError` (422, body `ActivationBlockedBody`) when not ready. */
     activate: () =>
       apiFetch<OnboardingActivateResponse>('/app/onboarding/activate', { method: 'POST' }),
+  },
+
+  assistant: {
+    /** Feature flag, capability note and the tool catalogue. 403 when off. */
+    overview: () => apiFetch<AssistantOverview>('/app/assistant'),
+    conversations: {
+      list: () =>
+        apiFetch<unknown>('/app/assistant/conversations').then((r) =>
+          pickArray<AssistantConversation>(r, 'conversations')
+        ),
+      create: (body: { title?: string } = {}) =>
+        apiFetch<{ conversation: AssistantConversation }>('/app/assistant/conversations', {
+          method: 'POST',
+          body,
+        }),
+      messages: (conversationId: string) =>
+        apiFetch<unknown>(`/app/assistant/conversations/${conversationId}/messages`).then((r) =>
+          pickArray<AssistantMessage>(r, 'messages')
+        ),
+      /** Throws `ApiError` whose body carries the failure code (see lib/assistant). */
+      send: (conversationId: string, body: { message: string }) =>
+        apiFetch<AssistantReply>(`/app/assistant/conversations/${conversationId}/messages`, {
+          method: 'POST',
+          body,
+        }),
+    },
+    /** Tool audit trail — successful *and* refused runs. */
+    activity: () =>
+      apiFetch<unknown>('/app/assistant/activity').then((r) => pickArray<AssistantRun>(r, 'runs')),
   },
 
   knowledge: {
