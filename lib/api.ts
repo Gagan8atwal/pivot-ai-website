@@ -432,6 +432,88 @@ export interface AssistantRun {
   [k: string]: unknown
 }
 
+// ─── Website import (GET/POST /app/assistant/import*) ────────────────────────
+//
+// The import proposes; it never writes settings. `applied` is carried on every
+// shape below and is always false in this release, so the UI has a real field
+// to render rather than an assumption to make.
+
+export interface ImportJob {
+  id: string
+  requested_url: string
+  resolved_url?: string | null
+  status: 'queued' | 'running' | 'succeeded' | 'partial' | 'failed' | 'blocked' | string
+  /** Guard vocabulary: blocked_scheme, resolves_to_private, timeout, … */
+  error_class?: string | null
+  error_detail?: string | null
+  pages_fetched?: number | null
+  created_at?: string | null
+  completed_at?: string | null
+}
+
+export interface ImportPage {
+  id: string
+  url: string
+  final_url?: string | null
+  http_status?: number | null
+  byte_count?: number | null
+  status: 'fetched' | 'skipped' | 'blocked' | 'failed' | string
+  skip_reason?: string | null
+}
+
+export interface ImportReview {
+  id: string
+  candidate_id: string
+  decision: 'accepted' | 'rejected' | 'edited' | 'deferred' | string
+  edited_value?: string | null
+  note?: string | null
+  /** Null until a separate approved change actually applies the value. */
+  applied_at?: string | null
+  created_at?: string | null
+}
+
+export interface ImportCandidate {
+  id: string
+  field_key: string
+  value_text?: string | null
+  value_json?: unknown
+  /** `verified` = read from structured markup. `inferred` = guessed from prose. */
+  derivation: 'verified' | 'inferred' | string
+  confidence: number
+  source_url?: string | null
+  evidence?: string | null
+  /** Prices, guarantees, regulated claims. Never auto-acceptable at any confidence. */
+  high_risk: boolean
+  risk_reason?: string | null
+  review?: ImportReview | null
+  applied: boolean
+}
+
+export interface ImportSummary {
+  pagesFetched: number
+  pagesBlocked: number
+  candidates: number
+  verified: number
+  inferred: number
+  highRisk: number
+  conflicts: number
+  injectionPages: number
+}
+
+export interface ImportStartResponse {
+  jobId: string
+  status: ImportJob['status']
+  summary: ImportSummary
+  applied: false
+  note: string
+}
+
+export interface ImportJobDetail {
+  job: ImportJob
+  pages: ImportPage[]
+  candidates: ImportCandidate[]
+}
+
 // ─── Typed API surface ────────────────────────────────────────────────────────
 export const api = {
   // Auth (token attached only where the contract requires it)
@@ -544,6 +626,28 @@ export const api = {
     /** Tool audit trail — successful *and* refused runs. */
     activity: () =>
       apiFetch<unknown>('/app/assistant/activity').then((r) => pickArray<AssistantRun>(r, 'runs')),
+
+    /**
+     * Website import. Reads a customer's site under the SSRF guard and returns
+     * candidates to review. Nothing it returns has been applied.
+     */
+    imports: {
+      /** Admin only. 409 when an import is already running for this tenant. */
+      start: (body: { url: string }) =>
+        apiFetch<ImportStartResponse>('/app/assistant/import', { method: 'POST', body }),
+      list: () =>
+        apiFetch<unknown>('/app/assistant/imports').then((r) => pickArray<ImportJob>(r, 'jobs')),
+      get: (jobId: string) => apiFetch<ImportJobDetail>(`/app/assistant/imports/${jobId}`),
+      /** Records a decision. Does not apply it — `applied` comes back false. */
+      review: (
+        candidateId: string,
+        body: { decision: 'accepted' | 'rejected' | 'edited' | 'deferred'; editedValue?: string; note?: string }
+      ) =>
+        apiFetch<{ review: ImportReview; applied: false; note: string }>(
+          `/app/assistant/imports/candidates/${candidateId}/review`,
+          { method: 'POST', body }
+        ),
+    },
   },
 
   knowledge: {
