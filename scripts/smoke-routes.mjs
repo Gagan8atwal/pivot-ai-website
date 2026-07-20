@@ -41,6 +41,7 @@ const AUTH_ROUTES = [
 // Authenticated app pages.
 const APP_ROUTES = [
   ['/dashboard', 'app/(app)/dashboard/page.tsx'],
+  ['/onboarding', 'app/(app)/onboarding/page.tsx'],
   ['/owner', 'app/(app)/owner/page.tsx'],
   ['/crm', 'app/(app)/crm/page.tsx'],
   ['/appointments', 'app/(app)/appointments/page.tsx'],
