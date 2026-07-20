@@ -4,7 +4,7 @@ import { Phone, Mail, MapPin } from 'lucide-react'
 const productLinks = [
   { label: 'Features', href: '/#features' },
   { label: 'How It Works', href: '/#how-it-works' },
-  { label: 'Pricing', href: '/#pricing' },
+  { label: 'Pricing', href: '/pricing' },
   { label: 'Request Demo', href: '/demo' },
 ]
 

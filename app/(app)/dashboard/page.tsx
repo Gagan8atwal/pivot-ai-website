@@ -31,6 +31,10 @@ export default function DashboardPage() {
 
   const leads = useApi(() => api.leads.list().then((r) => asArray<Lead>(r)), [])
   const appts = useApi(() => api.appointments.list().then((r) => asArray<Appointment>(r)), [])
+  // Onboarding status drives the banner below. A tenant that has not activated
+  // should be pointed at setup rather than left staring at an empty dashboard
+  // wondering why no calls are arriving.
+  const onboarding = useApi(() => api.onboarding.get(), [])
 
   if (!configured || !isApiConfigured) {
     return (
@@ -59,8 +63,41 @@ export default function DashboardPage() {
 
   const businessName = me?.business?.name ?? 'your business'
 
+  // Only claim a state we actually know. While the request is in flight, or if
+  // it failed, show nothing rather than guessing that setup is incomplete.
+  const ob = onboarding.data
+  const activated = Boolean(ob?.state?.activated_at)
+  const completedCount = ob?.state?.completed_steps?.length ?? 0
+  const totalSteps = ob?.totalSteps ?? 7
+  const resumeStep = ob?.state?.current_step ?? 1
+  const showSetupBanner = Boolean(ob) && !activated
+
   return (
     <>
+      {showSetupBanner && (
+        <div
+          role="status"
+          className="mb-6 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 sm:flex sm:items-center sm:justify-between sm:gap-4"
+        >
+          <div className="min-w-0">
+            <p className="font-medium text-amber-200">
+              Your AI receptionist isn&apos;t live yet.
+            </p>
+            <p className="mt-1 text-sm text-amber-200/80">
+              {completedCount === 0
+                ? `Finish setup to start answering calls — ${totalSteps} short steps.`
+                : `${completedCount} of ${totalSteps} steps done. Pick up where you left off at step ${resumeStep}.`}
+            </p>
+          </div>
+          <Link href="/onboarding" className="mt-3 block sm:mt-0 sm:shrink-0">
+            <Button variant="amber">
+              {completedCount === 0 ? 'Start setup' : 'Resume setup'}
+              <ArrowRight className="ml-1.5 h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
+      )}
+
       <PageHeader
         title={`Welcome${me?.user?.name ? `, ${me.user.name.split(' ')[0]}` : ''}`}
         description={`Here's what's happening at ${businessName}.`}
