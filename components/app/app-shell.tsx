@@ -20,6 +20,7 @@ import {
   LogOut,
   ChevronDown,
   Phone,
+  Rocket,
   ShieldCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -43,6 +44,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
     section: 'Overview',
     items: [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { href: '/onboarding', label: 'Setup', icon: Rocket },
       { href: '/owner', label: 'Owner Command Center', icon: Crown, minRank: 4 },
     ],
   },

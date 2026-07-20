@@ -316,6 +316,65 @@ export interface Usage {
   [k: string]: unknown
 }
 
+// ─── Onboarding (GET/PATCH /app/onboarding, POST /app/onboarding/activate) ────
+export interface OnboardingStateRecord {
+  business_id?: string | null
+  /** 1‑based step the tenant should resume on. */
+  current_step: number
+  /** Steps the backend considers really finished. */
+  completed_steps: number[]
+  draft: Record<string, unknown>
+  last_saved_at?: string | null
+  completed_at?: string | null
+  activated_at?: string | null
+  [k: string]: unknown
+}
+
+/** A blocker or warning surfaced by the backend readiness check. */
+export interface ReadinessIssue {
+  field: string
+  message: string
+}
+
+export interface OnboardingReadiness {
+  ready: boolean
+  blockers: ReadinessIssue[]
+  warnings: ReadinessIssue[]
+}
+
+export interface OnboardingIntegrations {
+  calendar: boolean
+  phone: boolean
+  sms: { enabled: boolean; deliverable: boolean; reason?: string | null }
+  email: boolean
+}
+
+export interface OnboardingResponse {
+  state: OnboardingStateRecord
+  totalSteps: number
+  readiness: OnboardingReadiness
+  integrations: OnboardingIntegrations
+}
+
+export interface OnboardingSaveResponse {
+  state: OnboardingStateRecord
+  savedAt?: string | null
+}
+
+export interface OnboardingActivateResponse {
+  ok?: boolean
+  alreadyActive?: boolean
+  activatedAt?: string | null
+  warnings?: ReadinessIssue[]
+}
+
+/** Body of a `422 activation_blocked` response from POST /app/onboarding/activate. */
+export interface ActivationBlockedBody {
+  error: 'activation_blocked'
+  blockers: ReadinessIssue[]
+  warnings?: ReadinessIssue[]
+}
+
 // ─── Typed API surface ────────────────────────────────────────────────────────
 export const api = {
   // Auth (token attached only where the contract requires it)
@@ -385,6 +444,20 @@ export const api = {
     get: () => apiFetch<Settings>('/app/settings'),
     update: (body: Partial<Settings>) =>
       apiFetch<Settings>('/app/settings', { method: 'PATCH', body }),
+  },
+
+  onboarding: {
+    get: () => apiFetch<OnboardingResponse>('/app/onboarding'),
+    /** Persist wizard progress. `completedStep` marks a step really finished. */
+    save: (body: {
+      currentStep: number
+      completedStep?: number
+      draft?: Record<string, unknown>
+    }) =>
+      apiFetch<OnboardingSaveResponse>('/app/onboarding', { method: 'PATCH', body }),
+    /** Throws `ApiError` (422, body `ActivationBlockedBody`) when not ready. */
+    activate: () =>
+      apiFetch<OnboardingActivateResponse>('/app/onboarding/activate', { method: 'POST' }),
   },
 
   knowledge: {
