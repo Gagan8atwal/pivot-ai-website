@@ -727,6 +727,23 @@ export const api = {
           `/app/assistant/writes/${approvalId}/undo`,
           { method: 'POST' }
         ),
+      /**
+       * Turn reviewed import candidates into pending approvals.
+       *
+       * Creates proposals only — `applied` comes back false. Without this the
+       * approvals screen has no producer at all: the model is deliberately
+       * barred from proposing, so a human pressing this button is the only way
+       * a change ever reaches the approval queue.
+       */
+      applyReviewedImport: () =>
+        apiFetch<{
+          created: { approvalId: string; field: string }[]
+          skipped: { field: string; reason: string }[]
+          failed: { field: string; error: string }[]
+          applied: false
+          note: string
+        }>('/app/assistant/onboarding/apply-import', { method: 'POST' }),
+
       history: () =>
         apiFetch<unknown>('/app/assistant/writes/history').then((r) =>
           pickArray<WriteApproval>(r, 'approvals')
