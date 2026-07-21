@@ -49,6 +49,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
       { href: '/onboarding', label: 'Setup', icon: Rocket },
       { href: '/assistant', label: 'Assistant', icon: Sparkles },
       { href: '/import', label: 'Import from site', icon: Globe },
+      { href: '/changes', label: 'Changes', icon: ShieldCheck },
       { href: '/owner', label: 'Owner Command Center', icon: Crown, minRank: 4 },
     ],
   },

@@ -485,6 +485,8 @@ export interface ImportCandidate {
   /** Prices, guarantees, regulated claims. Never auto-acceptable at any confidence. */
   high_risk: boolean
   risk_reason?: string | null
+  /** Another page on the same site gave a different value for this field. */
+  conflict?: boolean
   review?: ImportReview | null
   applied: boolean
 }
@@ -512,6 +514,38 @@ export interface ImportJobDetail {
   job: ImportJob
   pages: ImportPage[]
   candidates: ImportCandidate[]
+}
+
+// ─── Approved configuration changes (Level 1 writes) ─────────────────────────
+//
+// The assistant proposes; a person approves; applying is a third, separate
+// call. `applied` and `verified` are distinct on purpose — a change can be
+// applied and still not confirmed to have landed, and the UI must not collapse
+// those into a tick.
+
+export interface WriteDiff {
+  field: string
+  label: string
+  current: unknown
+  proposed: unknown
+  unchanged: boolean
+  summary: string
+}
+
+export interface WriteApproval {
+  id: string
+  tool_name: string
+  status: 'pending' | 'approved' | 'rejected' | 'expired' | 'applied' | 'undone' | string
+  proposed_input?: { field?: string; value?: unknown } | null
+  current_value?: Record<string, unknown> | null
+  proposed_value?: Record<string, unknown> | null
+  expires_at?: string | null
+  created_at?: string | null
+  decided_at?: string | null
+  applied_at?: string | null
+  /** Set only when a re-read confirmed the value actually changed. */
+  verified_at?: string | null
+  undone_at?: string | null
 }
 
 // ─── Typed API surface ────────────────────────────────────────────────────────
@@ -641,11 +675,61 @@ export const api = {
       /** Records a decision. Does not apply it — `applied` comes back false. */
       review: (
         candidateId: string,
-        body: { decision: 'accepted' | 'rejected' | 'edited' | 'deferred'; editedValue?: string; note?: string }
+        body: {
+          decision: 'accepted' | 'rejected' | 'edited' | 'deferred'
+          editedValue?: string
+          note?: string
+          /**
+           * Required to accept or edit a high-risk value (a price, a guarantee,
+           * a medical/legal/financial claim). Omitting it returns 422 with
+           * `high_risk_requires_acknowledgement` — deliberately, so that
+           * confirming a scraped price is a distinct thing the customer did and
+           * not a side effect of clicking the same button as everything else.
+           */
+          acknowledgeRisk?: boolean
+        }
       ) =>
         apiFetch<{ review: ImportReview; applied: false; note: string }>(
           `/app/assistant/imports/candidates/${candidateId}/review`,
           { method: 'POST', body }
+        ),
+    },
+
+    /**
+     * Level 1 configuration changes. Four separate calls because propose,
+     * decide, apply and undo are four distinct authenticated acts — collapsing
+     * any two would recreate a single call that both requests and performs a
+     * change.
+     */
+    writes: {
+      catalogue: () =>
+        apiFetch<{ tools: string[]; requiresApproval: true; note: string }>('/app/assistant/writes'),
+      /** Returns a diff and a pending approval. Writes nothing. */
+      propose: (body: { tool: string; value: unknown; conversationId?: string }) =>
+        apiFetch<{ approval: WriteApproval; diff: WriteDiff; applied: false; note: string }>(
+          '/app/assistant/writes/propose',
+          { method: 'POST', body }
+        ),
+      /** Approving is not applying — apply re-checks state before writing. */
+      decide: (approvalId: string, body: { decision: 'approved' | 'rejected' }) =>
+        apiFetch<{ approval: WriteApproval; applied: false; note: string }>(
+          `/app/assistant/writes/${approvalId}/decide`,
+          { method: 'POST', body }
+        ),
+      /** 409 `state_changed` when someone edited the setting in the meantime. */
+      apply: (approvalId: string) =>
+        apiFetch<{ applied: true; verified: boolean; field: string; warning?: string }>(
+          `/app/assistant/writes/${approvalId}/apply`,
+          { method: 'POST' }
+        ),
+      undo: (approvalId: string) =>
+        apiFetch<{ undone: true; verified: boolean; field: string }>(
+          `/app/assistant/writes/${approvalId}/undo`,
+          { method: 'POST' }
+        ),
+      history: () =>
+        apiFetch<unknown>('/app/assistant/writes/history').then((r) =>
+          pickArray<WriteApproval>(r, 'approvals')
         ),
     },
   },

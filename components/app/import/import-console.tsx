@@ -176,7 +176,10 @@ function JobReview({ jobId }: { jobId: string }) {
     verified: candidates.filter((c) => c.derivation === 'verified').length,
     inferred: candidates.filter((c) => c.derivation === 'inferred').length,
     highRisk: candidates.filter((c) => c.high_risk).length,
-    conflicts: 0,
+    // Previously hardcoded to 0, because the backend computed conflicts and
+    // then discarded them before writing. Now persisted, so the "N disagree
+    // between pages" line is reachable in the product for the first time.
+    conflicts: candidates.filter((c) => c.conflict).length,
     injectionPages: pages.filter((p) => (p.skip_reason ?? '').includes('injection_language_detected')).length,
   }
 
@@ -241,6 +244,7 @@ function CandidateRow({
   const [error, setError] = React.useState<string | null>(null)
   const [editing, setEditing] = React.useState(false)
   const [draft, setDraft] = React.useState(candidate.value_text ?? '')
+  const [confirmed, setConfirmed] = React.useState(false)
 
   const derivation = derivationLabel(candidate.derivation)
   const risks = riskExplanations(candidate.risk_reason)
@@ -248,12 +252,18 @@ function CandidateRow({
   const value = candidate.value_text ?? JSON.stringify(candidate.value_json ?? '')
 
   async function decide(decision: Decision, editedValue?: string) {
+    // Accepting or editing a high-risk value needs the customer to confirm it
+    // explicitly. The backend enforces this with a 422 — the checkbox is how
+    // they say yes, not a client-side nicety, and the button stays disabled
+    // until they do rather than letting them hit an error.
+    const needsAck = candidate.high_risk && (decision === 'accepted' || decision === 'edited')
     setBusy(decision)
     setError(null)
     try {
       await api.assistant.imports.review(candidate.id, {
         decision,
         ...(editedValue ? { editedValue } : {}),
+        ...(needsAck ? { acknowledgeRisk: true } : {}),
       })
       setEditing(false)
       onReviewed()
@@ -279,10 +289,20 @@ function CandidateRow({
             {candidate.high_risk ? (
               <Badge variant="amber">Needs your sign-off</Badge>
             ) : null}
+            {candidate.conflict ? (
+              <Badge variant="secondary">Pages disagree</Badge>
+            ) : null}
           </div>
         </div>
 
         <p className="text-xs text-muted-foreground">{derivation.detail}</p>
+
+        {candidate.conflict ? (
+          <p className="text-xs text-amber-900">
+            Another page on your site gives a different value for this. Usually that means one of
+            them is out of date — worth checking which.
+          </p>
+        ) : null}
 
         {risks.length > 0 ? (
           <ul className="space-y-1">
@@ -332,8 +352,26 @@ function CandidateRow({
             </Button>
           </div>
         ) : (
-          <div className="flex flex-wrap gap-2">
-            <Button size="sm" onClick={() => decide('accepted')} disabled={busy !== null}>
+          <div className="space-y-3">
+            {candidate.high_risk && !decided ? (
+              <label className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                <input
+                  type="checkbox"
+                  className="mt-0.5"
+                  checked={confirmed}
+                  onChange={(e) => setConfirmed(e.target.checked)}
+                />
+                <span>
+                  I have checked this against my business and confirm it is correct and current.
+                </span>
+              </label>
+            ) : null}
+            <div className="flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              onClick={() => decide('accepted')}
+              disabled={busy !== null || (candidate.high_risk && !confirmed)}
+            >
               <CheckCircle2 className="mr-1.5 h-4 w-4" aria-hidden />
               {candidate.high_risk ? 'I confirm this is correct' : 'Looks right'}
             </Button>
@@ -349,6 +387,7 @@ function CandidateRow({
               <MinusCircle className="mr-1.5 h-4 w-4" aria-hidden />
               Later
             </Button>
+            </div>
           </div>
         )}
 
