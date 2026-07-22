@@ -30,7 +30,7 @@ const faqItems = [
   {
     question: 'I\'m a solo operator with low call volume — is Pivot AI right for me?',
     answer:
-      'Our Starter plan at $49/month is built for solo operators. If you\'re missing even one or two calls a week, the value of a recovered job likely exceeds the monthly subscription. The AI handles calls when you\'re on the job, after hours, or simply unavailable — and the 14-day free trial means you can test it with zero financial risk.',
+      'The Starter plan is intended for solo operators and lower call volume. Request a pilot demo so we can review your missed-call pattern, confirm current availability and determine whether the expected recovered revenue justifies the monthly cost.',
   },
   {
     question: 'What if I want to transfer a caller to a live person?',
@@ -50,7 +50,7 @@ const faqItems = [
   {
     question: 'What is your cancellation policy?',
     answer:
-      'Cancel anytime with no penalty or cancellation fee. We operate month-to-month on all plans. Your 14-day free trial requires no credit card — you only enter billing information if you decide to continue.',
+      'Pilot, billing and cancellation terms are confirmed before activation. Requesting a demo does not start a subscription or charge a card. Review the applicable order and service terms before activating a paid plan.',
   },
   {
     question: 'Can I customize what the AI says?',
