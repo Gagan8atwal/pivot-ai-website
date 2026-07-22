@@ -1,25 +1,36 @@
 'use client'
 
 import * as React from 'react'
+import { AlertCircle, CheckCircle2, Clock, Mail, MapPin, Shield } from 'lucide-react'
 
-import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
-import { Input, Textarea, Label } from '@/components/ui/input'
+import { Navbar } from '@/components/navbar'
 import { Button } from '@/components/ui/button'
-import { CheckCircle2, Mail, MapPin, Clock, AlertCircle } from 'lucide-react'
+import { Input, Label, Textarea } from '@/components/ui/input'
+import { createSubmissionId } from '@/lib/intake'
 
 interface ContactForm {
   name: string
   email: string
   subject: string
   message: string
-  company_website: string // Honeypot
+  company_website: string
 }
 
-const initialForm: ContactForm = { name: '', email: '', subject: '', message: '', company_website: '' }
+const initialForm: ContactForm = {
+  name: '',
+  email: '',
+  subject: '',
+  message: '',
+  company_website: '',
+}
 
 export default function ContactPage() {
   const [form, setForm] = React.useState<ContactForm>(initialForm)
+  const [submissionMeta] = React.useState(() => ({
+    submissionId: createSubmissionId(),
+    formStartedAt: Date.now(),
+  }))
   const [submitted, setSubmitted] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
@@ -27,17 +38,17 @@ export default function ContactPage() {
   const canSubmit = form.name.trim() && form.email.trim() && form.message.trim()
 
   function handleChange(
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) {
-    const { name, value } = e.target
-    setForm((prev) => ({ ...prev, [name]: value }))
+    const { name, value } = event.target
+    setForm((previous) => ({ ...previous, [name]: value }))
     if (error) setError(null)
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault()
     if (!canSubmit) return
-    
+
     setLoading(true)
     setError(null)
 
@@ -45,19 +56,19 @@ export default function ContactPage() {
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, ...submissionMeta }),
       })
-
       const result = await response.json()
-
       if (!response.ok) {
         throw new Error(result.error || 'Something went wrong. Please try again.')
       }
-
       setSubmitted(true)
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Something went wrong. Please try again.'
-      setError(errorMsg)
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : 'Something went wrong. Please try again.'
+      )
     } finally {
       setLoading(false)
     }
@@ -76,16 +87,15 @@ export default function ContactPage() {
 
         <div className="container mx-auto px-4 lg:px-8 py-14">
           <div className="grid lg:grid-cols-5 gap-10 max-w-5xl mx-auto">
-            {/* Form */}
             <div className="lg:col-span-3">
               {submitted ? (
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-10 text-center">
                   <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-5">
                     <CheckCircle2 className="h-8 w-8 text-green-600" aria-hidden="true" />
                   </div>
-                  <h2 className="text-2xl font-bold text-navy-900 mb-3">Message sent!</h2>
+                  <h2 className="text-2xl font-bold text-navy-900 mb-3">Message received</h2>
                   <p className="text-slate-500">
-                    Thanks for reaching out. We&apos;ll get back to you within one business day.
+                    Your message has been saved. Our team will review it and respond as soon as possible.
                   </p>
                 </div>
               ) : (
@@ -98,13 +108,12 @@ export default function ContactPage() {
 
                   {error && (
                     <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-3 text-sm">
-                      <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                      <AlertCircle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
                       <p>{error}</p>
                     </div>
                   )}
 
-                  {/* Honeypot */}
-                  <div className="hidden">
+                  <div className="hidden" aria-hidden="true">
                     <label htmlFor="company_website">Company Website</label>
                     <input
                       id="company_website"
@@ -127,6 +136,7 @@ export default function ContactPage() {
                         value={form.name}
                         onChange={handleChange}
                         required
+                        maxLength={100}
                         autoComplete="name"
                       />
                     </div>
@@ -140,6 +150,7 @@ export default function ContactPage() {
                         value={form.email}
                         onChange={handleChange}
                         required
+                        maxLength={254}
                         autoComplete="email"
                       />
                     </div>
@@ -153,6 +164,7 @@ export default function ContactPage() {
                       placeholder="Question about pricing"
                       value={form.subject}
                       onChange={handleChange}
+                      maxLength={200}
                     />
                   </div>
 
@@ -165,8 +177,18 @@ export default function ContactPage() {
                       value={form.message}
                       onChange={handleChange}
                       required
+                      maxLength={5000}
                       rows={5}
                     />
+                  </div>
+
+                  <div className="flex items-start gap-2 rounded-lg bg-slate-50 px-3 py-2.5 text-xs text-slate-500">
+                    <Shield className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-slate-400" aria-hidden="true" />
+                    <span>
+                      We use these details to respond to your request and operate our acquisition workflow.
+                      Review our{' '}
+                      <a href="/privacy" className="underline hover:text-navy-900">Privacy Policy</a>.
+                    </span>
                   </div>
 
                   <Button
@@ -182,7 +204,6 @@ export default function ContactPage() {
               )}
             </div>
 
-            {/* Contact info */}
             <div className="lg:col-span-2 space-y-5">
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
                 <h3 className="font-bold text-navy-900">Get in touch</h3>
@@ -201,7 +222,7 @@ export default function ContactPage() {
                   },
                   {
                     icon: Clock,
-                    label: 'Response time',
+                    label: 'Response target',
                     value: 'Within 1 business day',
                     href: null,
                   },
@@ -227,11 +248,12 @@ export default function ContactPage() {
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
                 <p className="text-sm font-semibold text-amber-800 mb-1">Prefer a demo?</p>
                 <p className="text-sm text-amber-700 leading-relaxed">
-                  If you&apos;re interested in trying Pivot AI, our{' '}
+                  Request a founder-led pilot demo tailored to your business. We&apos;ll confirm fit,
+                  setup scope, and any pilot terms before anything begins.{' '}
                   <a href="/demo" className="underline font-semibold hover:text-amber-900 transition-colors">
-                    demo request form
-                  </a>{' '}
-                  gets you a personalized call and a 14-day free trial.
+                    Request a demo
+                  </a>
+                  .
                 </p>
               </div>
             </div>
