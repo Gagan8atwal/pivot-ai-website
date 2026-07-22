@@ -87,6 +87,11 @@ test('demo UI renders the shared consent contract instead of duplicating copy', 
   assert.doesNotMatch(source, /I agree to receive SMS updates from Pivot AI/)
 })
 
+test('customer email reuses the same consent sentence', () => {
+  const source = read('lib/demo-emails.ts')
+  assert.match(source, /SMS_CONSENT_PREFIX/)
+})
+
 test('consent metadata is conditional on an affirmative checkbox', () => {
   const source = read('app/api/demo/route.ts')
   assert.match(source, /sms_consent_at:\s*consent \? now : null/)
@@ -131,6 +136,7 @@ test('email helper writes a ledger and uses Resend idempotency keys', () => {
   assert.match(source, /idempotencyKey:\s*resendIdempotencyKey/)
   assert.match(source, /status:\s*'already_sent'/)
   assert.match(source, /recordIntakeEmailFailure/)
+  assert.match(source, /if \(!ledger \|\| ledger\.alreadySent\) return/)
 })
 
 test('calendar creation uses a deterministic event id and accepts duplicate conflicts', () => {
@@ -151,13 +157,18 @@ test('server rejects cross-site, oversized, too-fast, and expired submissions', 
 
 console.log('\npublic claim alignment')
 
-for (const relative of ['app/contact/page.tsx', 'app/demo/page.tsx']) {
+for (const relative of [
+  'app/contact/page.tsx',
+  'app/demo/page.tsx',
+  'lib/demo-emails.ts',
+]) {
   test(`${relative} makes no automatic trial or billing promise`, () => {
     const source = read(relative).toLowerCase()
     assert.doesNotMatch(source, /14-day free trial/)
     assert.doesNotMatch(source, /trial included/)
     assert.doesNotMatch(source, /no billing until/)
     assert.doesNotMatch(source, /confirmation email on its way/)
+    assert.doesNotMatch(source, /placeholder was added/)
   })
 }
 
