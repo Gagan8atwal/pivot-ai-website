@@ -70,6 +70,8 @@ export async function createDemoCalendarEvent(
     return { status: 'skipped', reason: `missing ${missing.join(', ')}` }
   }
 
+  const configuredCalendarId = calendarId as string
+
   try {
     const oauth2 = new OAuth2Client(clientId, clientSecret, redirectUri)
     oauth2.setCredentials({ refresh_token: refreshToken })
@@ -95,7 +97,7 @@ export async function createDemoCalendarEvent(
 
     const url =
       `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(
-        calendarId
+        configuredCalendarId
       )}/events?sendUpdates=none`
 
     const controller = new AbortController()
