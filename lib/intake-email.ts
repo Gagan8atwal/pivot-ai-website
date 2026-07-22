@@ -45,14 +45,19 @@ interface RecordFailureInput extends DeliveryLedgerInput {
 
 async function nextAttempt(
   input: DeliveryLedgerInput
-): Promise<{ eventId: string; marker: string; attempt: number } | null> {
+): Promise<{
+  eventId: string
+  marker: string
+  attempt: number
+  alreadySent: boolean
+} | null> {
   const { supabase, submissionId, source, emailType } = input
   const eventId = emailEventId(submissionId, source, emailType)
   const marker = recoveryMarker(submissionId, source)
 
   const { data: existing, error } = await supabase
     .from('email_events')
-    .select('attempt')
+    .select('status, attempt')
     .eq('id', eventId)
     .maybeSingle()
 
@@ -65,12 +70,13 @@ async function nextAttempt(
     eventId,
     marker,
     attempt: Math.max(1, Number(existing?.attempt ?? 0) + 1),
+    alreadySent: existing?.status === 'sent',
   }
 }
 
 export async function recordIntakeEmailFailure(input: RecordFailureInput): Promise<void> {
   const ledger = await nextAttempt(input)
-  if (!ledger) return
+  if (!ledger || ledger.alreadySent) return
 
   const { error } = await input.supabase.from('email_events').upsert(
     {
