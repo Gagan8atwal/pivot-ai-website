@@ -25,13 +25,73 @@ export type IntakeEmailResult =
   | { status: 'already_sent'; resendId: string | null }
   | { status: 'failed'; reason: string }
 
-interface SendTrackedEmailInput {
+interface DeliveryLedgerInput {
   supabase: SupabaseClient
-  resend: Resend
   submissionId: string
   source: IntakeSource
   emailType: IntakeEmailType
+  recipient: string
+  subject: string
+}
+
+interface SendTrackedEmailInput extends DeliveryLedgerInput {
+  resend: Resend
   payload: IntakeEmailPayload
+}
+
+interface RecordFailureInput extends DeliveryLedgerInput {
+  reason: string
+}
+
+async function nextAttempt(
+  input: DeliveryLedgerInput
+): Promise<{ eventId: string; marker: string; attempt: number } | null> {
+  const { supabase, submissionId, source, emailType } = input
+  const eventId = emailEventId(submissionId, source, emailType)
+  const marker = recoveryMarker(submissionId, source)
+
+  const { data: existing, error } = await supabase
+    .from('email_events')
+    .select('attempt')
+    .eq('id', eventId)
+    .maybeSingle()
+
+  if (error) {
+    console.error('[intake-email] ledger_lookup: FAIL —', safeErrorMessage(error))
+    return null
+  }
+
+  return {
+    eventId,
+    marker,
+    attempt: Math.max(1, Number(existing?.attempt ?? 0) + 1),
+  }
+}
+
+export async function recordIntakeEmailFailure(input: RecordFailureInput): Promise<void> {
+  const ledger = await nextAttempt(input)
+  if (!ledger) return
+
+  const { error } = await input.supabase.from('email_events').upsert(
+    {
+      id: ledger.eventId,
+      business_id: null,
+      appointment_id: null,
+      recipient_email: input.recipient,
+      email_type: input.emailType,
+      subject: input.subject,
+      resend_id: ledger.marker,
+      status: 'failed',
+      error_message: safeErrorMessage(input.reason),
+      attempt: ledger.attempt,
+      sent_at: null,
+    },
+    { onConflict: 'id' }
+  )
+
+  if (error) {
+    console.error('[intake-email] ledger_failure_record: FAIL —', safeErrorMessage(error))
+  }
 }
 
 export async function sendTrackedIntakeEmail(
