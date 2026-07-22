@@ -10,15 +10,7 @@ import {
 
 export type IntakeSource = 'contact_form' | 'demo_request'
 export type IntakeEmailType = 'owner_notification' | 'customer_confirmation'
-
-export interface IntakeEmailPayload {
-  from: string
-  to: string
-  subject: string
-  text?: string
-  html?: string
-  replyTo?: string
-}
+export type IntakeEmailPayload = Parameters<Resend['emails']['send']>[0]
 
 export type IntakeEmailResult =
   | { status: 'sent'; resendId: string | null }
