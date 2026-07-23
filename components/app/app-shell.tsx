@@ -23,6 +23,7 @@ import {
   Rocket,
   ShieldCheck,
   Sparkles,
+  Activity,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -48,6 +49,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
       { href: '/onboarding', label: 'Setup', icon: Rocket },
       { href: '/assistant', label: 'Assistant', icon: Sparkles },
       { href: '/owner', label: 'Owner Command Center', icon: Crown, minRank: 4 },
+      { href: '/operations', label: 'Operations Health', icon: Activity, minRank: 4 },
     ],
   },
   {
