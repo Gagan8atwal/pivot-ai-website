@@ -135,17 +135,17 @@ test('operations page renders no entity/provider identifiers or customer evidenc
     'resend_id',
     'recipient_email',
     'caller_number',
-    'transcript',
     'recording_url',
     'error_message',
   ]) {
     assert.ok(!page.includes(forbidden), forbidden)
   }
+  assert.doesNotMatch(page, /data\?\.(?:transcript|recording|provider|recipient|caller)/)
 })
 
 test('operations page states that it cannot mutate operational evidence', () => {
   assert.match(page, /read-only owner summary/)
-  assert.match(page, /Aging alone never completes a call, resends an email, closes a lead, or confirms an appointment/)
+  assert.match(page, /Aging alone never completes a call, resends an email, closes a lead, or confirms an\s+appointment/)
 })
 
 test('owner navigation exposes operations health only at owner rank', () => {
