@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 
 import { PageHeader } from '@/components/app/page-header'
+import { ReliabilityEvidence } from '@/components/app/reliability-evidence'
 import { EmptyState, ErrorState, LoadingState, NotConfiguredState } from '@/components/app/states'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -32,6 +33,7 @@ import {
   type FindingType,
   type ReconciliationResponse,
 } from '@/lib/operations'
+import type { SloResponse } from '@/lib/slo'
 import { cn } from '@/lib/utils'
 
 const FINDING_ICONS = {
@@ -55,29 +57,50 @@ export default function OperationsPage() {
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
   const [notEnabled, setNotEnabled] = React.useState(false)
+  const [sloData, setSloData] = React.useState<SloResponse | null>(null)
+  const [sloLoading, setSloLoading] = React.useState(true)
+  const [sloError, setSloError] = React.useState<string | null>(null)
+  const [sloNotEnabled, setSloNotEnabled] = React.useState(false)
 
   const load = React.useCallback(async () => {
     if (!isApiConfigured || !isOwner) {
       setLoading(false)
+      setSloLoading(false)
       return
     }
 
     setLoading(true)
+    setSloLoading(true)
     setError(null)
+    setSloError(null)
     setNotEnabled(false)
-    try {
-      const result = await apiFetch<ReconciliationResponse>('/app/ops/reconciliation')
-      setData(result)
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 404) {
-        setNotEnabled(true)
-        setData(null)
-      } else {
-        setError(errorMessage(err))
-      }
-    } finally {
-      setLoading(false)
+    setSloNotEnabled(false)
+
+    const [reconciliationResult, sloResult] = await Promise.allSettled([
+      apiFetch<ReconciliationResponse>('/app/ops/reconciliation'),
+      apiFetch<SloResponse>('/app/ops/slo'),
+    ])
+
+    if (reconciliationResult.status === 'fulfilled') {
+      setData(reconciliationResult.value)
+    } else if (reconciliationResult.reason instanceof ApiError && reconciliationResult.reason.status === 404) {
+      setNotEnabled(true)
+      setData(null)
+    } else {
+      setError(errorMessage(reconciliationResult.reason))
     }
+
+    if (sloResult.status === 'fulfilled') {
+      setSloData(sloResult.value)
+    } else if (sloResult.reason instanceof ApiError && sloResult.reason.status === 404) {
+      setSloNotEnabled(true)
+      setSloData(null)
+    } else {
+      setSloError(errorMessage(sloResult.reason))
+    }
+
+    setLoading(false)
+    setSloLoading(false)
   }, [isOwner])
 
   React.useEffect(() => {
@@ -154,7 +177,7 @@ export default function OperationsPage() {
         }
       />
 
-      <div className="space-y-6">
+      <div className="space-y-8">
         <div className={cn('rounded-xl border p-5', status.className)} role="status">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="flex items-start gap-3">
@@ -207,6 +230,13 @@ export default function OperationsPage() {
             )
           })}
         </div>
+
+        <ReliabilityEvidence
+          data={sloData}
+          loading={sloLoading}
+          error={sloError}
+          notEnabled={sloNotEnabled}
+        />
 
         <div className="grid gap-4 lg:grid-cols-3">
           <Card>
