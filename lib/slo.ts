@@ -96,7 +96,7 @@ export const SLO_ORDER: SloMetricName[] = [
 
 export const SLO_STATE_META: Record<
   SloState,
-  { label: string; description: string; className: string; badge: 'default' | 'secondary' | 'amber' | 'destructive' }
+  { label: string; description: string; className: string; badge: 'default' | 'secondary' | 'amber' }
 > = {
   healthy: {
     label: 'Healthy evidence',
@@ -114,7 +114,7 @@ export const SLO_STATE_META: Record<
     label: 'Critical reliability evidence',
     description: 'A fast error-budget burn or critical worker/queue guardrail requires platform review.',
     className: 'border-red-200 bg-red-50 text-red-800',
-    badge: 'destructive',
+    badge: 'secondary',
   },
   unknown: {
     label: 'Reliability not yet proven',
