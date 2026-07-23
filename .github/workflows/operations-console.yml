@@ -2,12 +2,16 @@ name: Owner Operations Console
 
 on:
   pull_request:
-    branches: [main]
+    branches:
+      - main
+      - feat/operations-reconciliation-console-20260723
     paths:
       - 'app/(app)/operations/**'
       - 'app/(app)/owner/page.tsx'
       - 'components/app/app-shell.tsx'
+      - 'components/app/reliability-evidence.tsx'
       - 'lib/operations.ts'
+      - 'lib/slo.ts'
       - 'scripts/operations.test.mjs'
       - 'scripts/smoke-routes.mjs'
       - 'package.json'
