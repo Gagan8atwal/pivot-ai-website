@@ -47,10 +47,20 @@ jobs:
         run: npm ci
 
       - name: Run repository regression suites
-        run: npm test
+        id: regression
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee operations-console-regression.log
 
       - name: Lint
-        run: npm run lint
+        id: lint
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run lint 2>&1 | tee operations-console-lint.log
 
       - name: Production build
         id: build
@@ -60,17 +70,26 @@ jobs:
           set -o pipefail
           npm run build 2>&1 | tee operations-console-build.log
 
-      - name: Upload production build log
+      - name: Upload verification logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: operations-console-build-log
-          path: operations-console-build.log
+          name: operations-console-verification-logs
+          path: |
+            operations-console-regression.log
+            operations-console-lint.log
+            operations-console-build.log
           if-no-files-found: error
           retention-days: 7
 
-      - name: Enforce production build result
+      - name: Enforce verification result
         if: always()
         env:
+          REGRESSION_OUTCOME: ${{ steps.regression.outcome }}
+          LINT_OUTCOME: ${{ steps.lint.outcome }}
           BUILD_OUTCOME: ${{ steps.build.outcome }}
-        run: test "$BUILD_OUTCOME" = "success"
+        run: |
+          echo "regression=$REGRESSION_OUTCOME lint=$LINT_OUTCOME build=$BUILD_OUTCOME"
+          test "$REGRESSION_OUTCOME" = "success"
+          test "$LINT_OUTCOME" = "success"
+          test "$BUILD_OUTCOME" = "success"
