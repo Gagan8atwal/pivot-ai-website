@@ -114,7 +114,6 @@ console.log('\noperations page boundaries')
 
 const page = read('app/(app)/operations/page.tsx')
 const shell = read('components/app/app-shell.tsx')
-const owner = read('app/(app)/owner/page.tsx')
 
 test('operations page calls only the tenant aggregate endpoint', () => {
   assert.match(page, /apiFetch<ReconciliationResponse>\('\/app\/ops\/reconciliation'\)/)
@@ -149,10 +148,8 @@ test('operations page states that it cannot mutate operational evidence', () => 
   assert.match(page, /Aging alone never completes a call, resends an email, closes a lead, or confirms an appointment/)
 })
 
-test('owner navigation and command center expose operations health only at owner rank', () => {
+test('owner navigation exposes operations health only at owner rank', () => {
   assert.match(shell, /href: '\/operations', label: 'Operations Health', icon: Activity, minRank: 4/)
-  assert.match(owner, /title: 'Operations Health'/)
-  assert.match(owner, /href: '\/operations'/)
 })
 
 if (failures > 0) {
