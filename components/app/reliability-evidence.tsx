@@ -13,6 +13,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
+  AVAILABILITY_COPY,
   SLO_ORDER,
   SLO_STATE_META,
   metric24h,
@@ -44,7 +45,7 @@ function readableReason(reason: string | null | undefined): string {
     invalid_timestamp: 'The evidence timestamp is invalid.',
     timestamp_in_future: 'The evidence timestamp is unexpectedly in the future.',
   }
-  return labels[reason] ?? reason.replaceAll('_', ' ')
+  return AVAILABILITY_COPY[reason] ?? labels[reason] ?? reason.replaceAll('_', ' ')
 }
 
 function stateBadgeClass(state: SloState): string | undefined {
@@ -59,7 +60,9 @@ function MetricCard({ data, name }: { data: SloResponse; name: SloMetricName }) 
   const Icon = STATE_ICONS[metric.state]
   const window = metric24h(data, name)
   const availability = metricAvailability(data, name)
-  const hasCounts = Number.isFinite(Number(window?.good)) && Number.isFinite(Number(window?.total))
+  const hasCounts =
+    typeof window?.good === 'number' && Number.isFinite(window.good)
+    && typeof window.total === 'number' && Number.isFinite(window.total)
 
   return (
     <Card>
@@ -94,7 +97,7 @@ function MetricCard({ data, name }: { data: SloResponse; name: SloMetricName }) 
               </div>
               {hasCounts ? (
                 <p className="text-right text-xs text-slate-500">
-                  {window?.good ?? 0} of {window?.total ?? 0} eligible events
+                  {window.good} of {window.total} eligible events
                 </p>
               ) : null}
             </div>
