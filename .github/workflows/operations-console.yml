@@ -1,0 +1,76 @@
+name: Owner Operations Console
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app/(app)/operations/**'
+      - 'app/(app)/owner/page.tsx'
+      - 'components/app/app-shell.tsx'
+      - 'lib/operations.ts'
+      - 'scripts/operations.test.mjs'
+      - 'scripts/smoke-routes.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/operations-console.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_API_BASE: https://example.invalid
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: test-anon-key
+      SUPABASE_URL: https://example.supabase.co
+      SUPABASE_SERVICE_ROLE_KEY: test-service-role-key
+      DASHBOARD_OWNER_ID: 00000000-0000-4000-8000-000000000000
+      OWNER_EMAIL: owner@example.com
+      FROM_EMAIL: Pivot AI <hello@example.com>
+      RESEND_API_KEY: re_test_key
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Run repository regression suites
+        run: npm test
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Production build
+        id: build
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run build 2>&1 | tee operations-console-build.log
+
+      - name: Upload production build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: operations-console-build-log
+          path: operations-console-build.log
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Enforce production build result
+        if: always()
+        env:
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+        run: test "$BUILD_OUTCOME" = "success"
