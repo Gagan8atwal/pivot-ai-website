@@ -138,8 +138,8 @@ export const AVAILABILITY_COPY: Record<string, string> = {
 }
 
 export function percent(value: number | null | undefined, digits = 1): string {
-  if (!Number.isFinite(Number(value))) return 'Unknown'
-  return `${(Number(value) * 100).toFixed(digits)}%`
+  if (value === null || value === undefined || !Number.isFinite(value)) return 'Unknown'
+  return `${(value * 100).toFixed(digits)}%`
 }
 
 export function metricAvailability(data: SloResponse | null, metric: SloMetricName): string | null {
