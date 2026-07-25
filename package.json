@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node scripts/smoke-routes.mjs && node scripts/url.test.mjs && node scripts/parse.test.mjs && node scripts/settings-ivr.test.mjs && node scripts/csp.test.mjs && node scripts/pricing.test.mjs && node scripts/operations.test.mjs"
+    "test": "node scripts/smoke-routes.mjs && node scripts/url.test.mjs && node scripts/parse.test.mjs && node scripts/settings-ivr.test.mjs && node scripts/csp.test.mjs && node scripts/pricing.test.mjs && node scripts/operations.test.mjs && node scripts/appointments-actions.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.0",
