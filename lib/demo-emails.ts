@@ -1,12 +1,9 @@
 /**
  * lib/demo-emails.ts — branded HTML email templates for the demo workflow.
- *
- * Brand tokens mirror brand/BRAND_GUIDE.md:
- *   navy #0E1B2C · navy800 #132C55 · amber #F59E0B · slate #334155 · muted #64748B
- * The header wordmark uses the hosted white logo PNG (public/logo/…).
- *
  * All user-supplied values are HTML-escaped before interpolation.
  */
+
+import { SMS_CONSENT_PREFIX } from '@/lib/intake'
 
 const SITE = 'https://pivotcalls.co'
 const LOGO_WHITE = `${SITE}/logo/pivot-ai-logo-white.png`
@@ -29,7 +26,6 @@ export interface DemoEmailData {
   smsConsent: boolean
 }
 
-/** Escape HTML so user input can't break layout or inject markup into the email. */
 export function escapeHtml(value: string): string {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -39,7 +35,6 @@ export function escapeHtml(value: string): string {
     .replace(/'/g, '&#39;')
 }
 
-/** Shared responsive shell: navy header w/ logo, white card, muted footer. */
 function shell(previewText: string, innerHtml: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -64,7 +59,7 @@ function shell(previewText: string, innerHtml: string): string {
       <tr>
         <td style="padding:20px 32px;background:${BG};border-top:1px solid ${BORDER};">
           <p style="margin:0;font-size:12px;line-height:1.6;color:${MUTED};">
-            Pivot AI — the 24/7 AI receptionist for local service businesses.<br />
+            Pivot AI — AI receptionist software for local service businesses.<br />
             <a href="${SITE}" style="color:${MUTED};text-decoration:underline;">pivotcalls.co</a>
           </p>
         </td>
@@ -83,63 +78,61 @@ function detailRow(label: string, value: string): string {
   </tr>`
 }
 
-// ─── Owner notification ─────────────────────────────────────────────────────
-export function ownerEmailSubject(d: DemoEmailData): string {
-  return `New Pivot AI Demo Request — ${d.businessName || d.contactName}`
+export function ownerEmailSubject(data: DemoEmailData): string {
+  return `New Pivot AI Demo Request — ${data.businessName || data.contactName}`
 }
 
-export function ownerEmailHtml(d: DemoEmailData): string {
+export function ownerEmailHtml(data: DemoEmailData): string {
   const inner = `
     <h1 style="margin:0 0 4px;font-size:22px;line-height:1.3;color:${NAVY};font-weight:700;">New demo request</h1>
-    <p style="margin:0 0 24px;font-size:14px;color:${MUTED};">A new lead just submitted the demo form on pivotcalls.co.</p>
+    <p style="margin:0 0 24px;font-size:14px;color:${MUTED};">A new acquisition request was saved from pivotcalls.co.</p>
     <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;">
-      ${detailRow('Name', d.contactName)}
-      ${detailRow('Business', d.businessName)}
-      ${detailRow('Email', d.email)}
-      ${detailRow('Phone', d.phone)}
-      ${detailRow('Industry', d.industry)}
-      ${detailRow('Team size', d.employees)}
-      ${detailRow('Message', d.message)}
-      ${detailRow('SMS consent', d.smsConsent ? 'Yes — web form' : 'No')}
+      ${detailRow('Name', data.contactName)}
+      ${detailRow('Business', data.businessName)}
+      ${detailRow('Email', data.email)}
+      ${detailRow('Phone', data.phone)}
+      ${detailRow('Industry', data.industry)}
+      ${detailRow('Team size', data.employees)}
+      ${detailRow('Message', data.message)}
+      ${detailRow('SMS consent', data.smsConsent ? 'Yes — web form' : 'No')}
     </table>
     <div style="margin-top:24px;padding:16px;background:${BG};border:1px solid ${BORDER};border-radius:12px;">
       <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:${NAVY};">Next steps</p>
       <p style="margin:0;font-size:13px;line-height:1.6;color:${SLATE};">
-        1. Call or text ${escapeHtml(d.phone || 'the lead')} within a few hours while interest is warm.<br />
-        2. Confirm the demo time (a placeholder was added to your Google Calendar).<br />
-        3. Prep an industry-tailored walkthrough${d.industry ? ` for ${escapeHtml(d.industry)}` : ''}.
+        1. Review the business and contact details.<br />
+        2. Contact ${escapeHtml(data.phone || data.email || 'the lead')} to confirm fit and arrange a real demo time.<br />
+        3. Check the acquisition record for Calendar and delivery status before relying on provider side effects.
       </p>
     </div>`
-  return shell(`New demo request from ${d.businessName || d.contactName}`, inner)
+  return shell(`New demo request from ${data.businessName || data.contactName}`, inner)
 }
 
-// ─── Customer confirmation ──────────────────────────────────────────────────
 export const CUSTOMER_EMAIL_SUBJECT = 'Your Pivot AI Demo Request Was Received'
 
-export function customerEmailHtml(d: DemoEmailData): string {
-  const firstName = (d.contactName || '').trim().split(/\s+/)[0] || 'there'
-  const smsNote = d.smsConsent
+export function customerEmailHtml(data: DemoEmailData): string {
+  const firstName = (data.contactName || '').trim().split(/\s+/)[0] || 'there'
+  const smsNote = data.smsConsent
     ? `<p style="margin:16px 0 0;font-size:12px;line-height:1.6;color:${MUTED};">
-         You agreed to receive communications from Pivot AI, including text messages, about your demo request.
-         Message &amp; data rates may apply. Reply STOP to any text to opt out at any time.
+         ${escapeHtml(SMS_CONSENT_PREFIX)}
        </p>`
     : ''
   const inner = `
-    <h1 style="margin:0 0 12px;font-size:22px;line-height:1.3;color:${NAVY};font-weight:700;">Thanks, ${escapeHtml(firstName)} — we've got your request</h1>
+    <h1 style="margin:0 0 12px;font-size:22px;line-height:1.3;color:${NAVY};font-weight:700;">Thanks, ${escapeHtml(firstName)} — we received your request</h1>
     <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:${SLATE};">
-      We received your request for a Pivot AI demo${d.businessName ? ` for <strong>${escapeHtml(d.businessName)}</strong>` : ''}.
-      A member of our founding team will reach out shortly to schedule a personalized walkthrough.
+      Your request for a Pivot AI demonstration${data.businessName ? ` for <strong>${escapeHtml(data.businessName)}</strong>` : ''} has been saved.
+      Our founding team will review the use case and contact details before arranging a walkthrough.
     </p>
     <div style="margin:0 0 20px;padding:16px;background:${BG};border:1px solid ${BORDER};border-radius:12px;">
       <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:${NAVY};">What happens next</p>
       <p style="margin:0;font-size:13px;line-height:1.7;color:${SLATE};">
-        • We'll contact you at <strong>${escapeHtml(d.phone || d.email)}</strong> to pick a time.<br />
-        • You'll see Pivot AI answer a real call, tailored to your business.<br />
-        • If you move forward, setup is founder-led — no credit card to start your 14-day trial.
+        • We review the requested call flow, business requirements, and fit.<br />
+        • We contact you at <strong>${escapeHtml(data.phone || data.email)}</strong> to arrange a demonstration.<br />
+        • Setup, integrations, pricing, and any pilot terms are confirmed separately.<br />
+        • This form submission does not activate service or start billing.
       </p>
     </div>
     <p style="margin:0;font-size:14px;line-height:1.6;color:${SLATE};">
-      Questions in the meantime? Just reply to this email or visit
+      Questions in the meantime? Reply to this email or visit
       <a href="${SITE}/contact" style="color:${NAVY};text-decoration:underline;">pivotcalls.co/contact</a>.
     </p>
     ${smsNote}`

@@ -1,21 +1,23 @@
 'use client'
 
 import * as React from 'react'
-import { Navbar } from '@/components/navbar'
-import { Footer } from '@/components/footer'
-import { Input, Textarea, Label, Select, Checkbox } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
 import {
-  CheckCircle2,
-  Phone,
-  Mail,
-  Clock,
-  Users,
   AlertCircle,
-  Shield,
-  Calendar,
   ArrowRight,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  Mail,
+  Phone,
+  Shield,
+  Users,
 } from 'lucide-react'
+
+import { Footer } from '@/components/footer'
+import { Navbar } from '@/components/navbar'
+import { Button } from '@/components/ui/button'
+import { Checkbox, Input, Label, Select, Textarea } from '@/components/ui/input'
+import { SMS_CONSENT_PREFIX, createSubmissionId } from '@/lib/intake'
 
 const industries = [
   'HVAC & Mechanical',
@@ -46,7 +48,7 @@ interface FormState {
   employees: string
   message: string
   consent: boolean
-  company_website: string // Honeypot
+  company_website: string
 }
 
 const initialState: FormState = {
@@ -64,35 +66,36 @@ const initialState: FormState = {
 const nextSteps = [
   {
     step: '1',
-    title: 'Submit this form',
-    desc: 'Takes under 2 minutes. No credit card or commitment needed.',
+    title: 'Submit your request',
+    desc: 'Tell us about the business and the calls you want Pivot AI to handle.',
   },
   {
     step: '2',
-    title: 'A founder calls you',
-    desc: 'We personally review every request and follow up within 1 business day.',
+    title: 'Founder review',
+    desc: 'We review fit, requirements, integrations, and any operational constraints.',
   },
   {
     step: '3',
-    title: 'Live demo for your industry',
-    desc: 'Watch Pivot AI answer a real call tailored to your business. About 30 minutes.',
+    title: 'Tailored demonstration',
+    desc: 'We demonstrate the receptionist flow for your business and answer questions.',
   },
   {
     step: '4',
-    title: '14-day free trial with full setup',
-    desc: 'We configure your AI receptionist. No billing until you decide to continue.',
+    title: 'Pilot scope confirmation',
+    desc: 'Setup, testing, pricing, and pilot terms are confirmed before activation.',
   },
 ]
 
 export default function DemoPage() {
   const [form, setForm] = React.useState<FormState>(initialState)
+  const [submissionMeta] = React.useState(() => ({
+    submissionId: createSubmissionId(),
+    formStartedAt: Date.now(),
+  }))
   const [submitted, setSubmitted] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
-  // SMS consent is OPTIONAL (A2P: consent must be voluntary, not a condition of
-  // submitting). The checkbox no longer gates submission; the API records whether
-  // it was checked. Business/contact/email/phone remain required.
   const canSubmit =
     form.businessName.trim() &&
     form.contactName.trim() &&
@@ -100,18 +103,18 @@ export default function DemoPage() {
     form.phone.trim()
 
   function handleChange(
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) {
-    const { name, value, type } = e.target
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
+    const { name, value, type } = event.target
+    setForm((previous) => ({
+      ...previous,
+      [name]: type === 'checkbox' ? (event.target as HTMLInputElement).checked : value,
     }))
     if (error) setError(null)
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault()
     if (!canSubmit) return
 
     setLoading(true)
@@ -121,19 +124,19 @@ export default function DemoPage() {
       const response = await fetch('/api/demo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, ...submissionMeta }),
       })
-
       const result = await response.json()
-
       if (!response.ok) {
         throw new Error(result.error || 'Something went wrong. Please try again.')
       }
-
       setSubmitted(true)
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Something went wrong. Please try again.'
-      setError(errorMsg)
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : 'Something went wrong. Please try again.'
+      )
     } finally {
       setLoading(false)
     }
@@ -143,24 +146,22 @@ export default function DemoPage() {
     <>
       <Navbar />
       <main className="min-h-screen bg-slate-50 pt-16">
-        {/* Hero bar */}
         <div className="bg-navy-900 py-14 text-center">
           <p className="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-3">
-            Founder-led Early Access
+            Founder-led pilot evaluation
           </p>
           <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4 text-balance">
             See Pivot AI Answer a Real Call<br className="hidden sm:block" /> for Your Business
           </h1>
           <p className="text-slate-300 text-lg max-w-xl mx-auto mb-7">
-            Fill out this 2-minute form. A founder personally reviews every request and
-            follows up within 1 business day — no sales team, no runaround.
+            Submit a short request. We&apos;ll review your requirements and follow up to arrange a
+            tailored demonstration when the use case is a practical fit.
           </p>
-          {/* Quick trust bar */}
           <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-slate-400">
             {[
-              { icon: Clock, text: 'Response within 1 business day' },
-              { icon: Shield, text: 'No credit card required' },
-              { icon: CheckCircle2, text: '14-day free trial included' },
+              { icon: Clock, text: 'Founder review after submission' },
+              { icon: Shield, text: 'No payment to request a demo' },
+              { icon: CheckCircle2, text: 'Scope confirmed before activation' },
             ].map(({ icon: Icon, text }) => (
               <div key={text} className="flex items-center gap-1.5">
                 <Icon className="h-4 w-4 text-amber-400 flex-shrink-0" aria-hidden="true" />
@@ -172,30 +173,26 @@ export default function DemoPage() {
 
         <div className="container mx-auto px-4 lg:px-8 py-14">
           <div className="grid lg:grid-cols-5 gap-10 max-w-5xl mx-auto">
-            {/* Left: Form */}
             <div className="lg:col-span-3">
               {submitted ? (
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-10 text-center">
                   <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-5">
                     <CheckCircle2 className="h-8 w-8 text-green-600" aria-hidden="true" />
                   </div>
-                  <h2 className="text-2xl font-bold text-navy-900 mb-3">
-                    You&apos;re on the list!
-                  </h2>
+                  <h2 className="text-2xl font-bold text-navy-900 mb-3">Demo request received</h2>
                   <p className="text-slate-500 leading-relaxed mb-6">
-                    A founder will personally review your request and reach out to{' '}
-                    <strong>{form.email}</strong> within 1 business day to schedule your demo.
+                    Your request has been saved. We&apos;ll review the business details and contact you
+                    using the information provided.
                   </p>
-                  {/* What happens next */}
                   <div className="text-left bg-slate-50 rounded-xl p-5 space-y-4">
                     <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                       What happens next
                     </p>
                     {[
-                      { icon: Mail, text: 'Confirmation email on its way to your inbox' },
-                      { icon: Phone, text: 'A founder calls within 1 business day' },
-                      { icon: Calendar, text: 'Live 30-min demo tailored to your industry' },
-                      { icon: CheckCircle2, text: '14-day free trial — no credit card needed' },
+                      { icon: CheckCircle2, text: 'Your request is recorded with a unique reference' },
+                      { icon: Phone, text: 'A founder reviews the use case and contact details' },
+                      { icon: Calendar, text: 'A demonstration time is arranged after review' },
+                      { icon: Shield, text: 'Nothing is activated or billed by this form submission' },
                     ].map(({ icon: Icon, text }) => (
                       <div key={text} className="flex items-center gap-3">
                         <div className="h-7 w-7 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
@@ -206,7 +203,7 @@ export default function DemoPage() {
                     ))}
                   </div>
                   <p className="text-xs text-slate-400 mt-5">
-                    Questions? Email us at{' '}
+                    Questions? Email{' '}
                     <a href="mailto:hello@pivotcalls.co" className="text-navy-900 underline hover:text-amber-600">
                       hello@pivotcalls.co
                     </a>
@@ -219,9 +216,9 @@ export default function DemoPage() {
                   noValidate
                 >
                   <div>
-                    <h2 className="text-xl font-bold text-navy-900 mb-1">Your Information</h2>
+                    <h2 className="text-xl font-bold text-navy-900 mb-1">Your information</h2>
                     <p className="text-sm text-slate-500">
-                      We&apos;ll use this to configure your demo and get in touch.
+                      We&apos;ll use this to evaluate the request and arrange the demonstration.
                     </p>
                   </div>
 
@@ -232,7 +229,6 @@ export default function DemoPage() {
                     </div>
                   )}
 
-                  {/* Honeypot */}
                   <div className="hidden" aria-hidden="true">
                     <label htmlFor="company_website">Company Website</label>
                     <input
@@ -256,6 +252,7 @@ export default function DemoPage() {
                         value={form.businessName}
                         onChange={handleChange}
                         required
+                        maxLength={200}
                         autoComplete="organization"
                       />
                     </div>
@@ -268,6 +265,7 @@ export default function DemoPage() {
                         value={form.contactName}
                         onChange={handleChange}
                         required
+                        maxLength={100}
                         autoComplete="name"
                       />
                     </div>
@@ -284,6 +282,7 @@ export default function DemoPage() {
                         value={form.email}
                         onChange={handleChange}
                         required
+                        maxLength={254}
                         autoComplete="email"
                       />
                     </div>
@@ -297,6 +296,7 @@ export default function DemoPage() {
                         value={form.phone}
                         onChange={handleChange}
                         required
+                        maxLength={40}
                         autoComplete="tel"
                       />
                     </div>
@@ -305,49 +305,39 @@ export default function DemoPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div className="space-y-1.5">
                       <Label htmlFor="industry">Industry</Label>
-                      <div className="relative">
-                        <Select
-                          id="industry"
-                          name="industry"
-                          value={form.industry}
-                          onChange={handleChange}
-                        >
-                          <option value="">Select your industry</option>
-                          {industries.map((ind) => (
-                            <option key={ind} value={ind}>{ind}</option>
-                          ))}
-                        </Select>
-                      </div>
+                      <Select id="industry" name="industry" value={form.industry} onChange={handleChange}>
+                        <option value="">Select your industry</option>
+                        {industries.map((industry) => (
+                          <option key={industry} value={industry}>{industry}</option>
+                        ))}
+                      </Select>
                     </div>
                     <div className="space-y-1.5">
                       <Label htmlFor="employees">Team Size</Label>
-                      <Select
-                        id="employees"
-                        name="employees"
-                        value={form.employees}
-                        onChange={handleChange}
-                      >
+                      <Select id="employees" name="employees" value={form.employees} onChange={handleChange}>
                         <option value="">Select team size</option>
-                        {employeeRanges.map((r) => (
-                          <option key={r} value={r}>{r}</option>
+                        {employeeRanges.map((range) => (
+                          <option key={range} value={range}>{range}</option>
                         ))}
                       </Select>
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="message">Tell us about your business <span className="text-slate-400 font-normal">(optional)</span></Label>
+                    <Label htmlFor="message">
+                      Tell us about your business <span className="text-slate-400 font-normal">(optional)</span>
+                    </Label>
                     <Textarea
                       id="message"
                       name="message"
-                      placeholder="What types of calls do you receive? What problems are you trying to solve?"
+                      placeholder="What calls do you receive and what problem are you trying to solve?"
                       value={form.message}
                       onChange={handleChange}
+                      maxLength={2000}
                       rows={3}
                     />
                   </div>
 
-                  {/* SMS Consent — optional per A2P compliance */}
                   <div className="pt-1">
                     <Checkbox
                       id="consent"
@@ -356,9 +346,7 @@ export default function DemoPage() {
                       onChange={handleChange}
                       label={
                         <>
-                          I agree to receive SMS updates from Pivot AI about my demo request.
-                          Message and data rates may apply. Reply STOP to opt out at any time.
-                          See our{' '}
+                          {SMS_CONSENT_PREFIX} See our{' '}
                           <a href="/privacy" className="text-navy-900 underline hover:text-amber-600">
                             Privacy Policy
                           </a>{' '}
@@ -371,14 +359,16 @@ export default function DemoPage() {
                       }
                     />
                     <p className="text-xs text-slate-400 mt-1.5 ml-7">
-                      SMS consent is optional and not required to submit this form.
+                      SMS consent is optional and is not required to request a demo.
                     </p>
                   </div>
 
-                  {/* Privacy reassurance */}
-                  <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 rounded-lg px-3 py-2.5">
-                    <Shield className="h-3.5 w-3.5 text-slate-400 flex-shrink-0" aria-hidden="true" />
-                    <span>Your information is never shared. No spam, no sales pressure — just a real conversation with our founding team.</span>
+                  <div className="flex items-start gap-2 text-xs text-slate-500 bg-slate-50 rounded-lg px-3 py-2.5">
+                    <Shield className="mt-0.5 h-3.5 w-3.5 text-slate-400 flex-shrink-0" aria-hidden="true" />
+                    <span>
+                      We use these details to evaluate and respond to the request and to operate the
+                      acquisition workflow described in our Privacy Policy.
+                    </span>
                   </div>
 
                   <Button
@@ -390,33 +380,26 @@ export default function DemoPage() {
                   >
                     {loading ? 'Submitting…' : (
                       <>
-                        Get My Free Demo
+                        Request My Demo
                         <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
                       </>
                     )}
                   </Button>
 
                   <p className="text-xs text-slate-400 text-center">
-                    No credit card required · Cancel anytime · 14-day free trial
+                    Submitting this form does not create an account, activate service, or start billing.
                   </p>
                 </form>
               )}
             </div>
 
-            {/* Right: What happens next + trust */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Numbered steps */}
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                <h3 className="text-base font-bold text-navy-900 mb-5">
-                  What happens next
-                </h3>
+                <h3 className="text-base font-bold text-navy-900 mb-5">What happens next</h3>
                 <ol className="space-y-5">
                   {nextSteps.map(({ step, title, desc }) => (
                     <li key={step} className="flex items-start gap-4">
-                      <div
-                        className="h-7 w-7 rounded-full bg-amber-100 text-amber-700 text-sm font-bold flex items-center justify-center flex-shrink-0"
-                        aria-hidden="true"
-                      >
+                      <div className="h-7 w-7 rounded-full bg-amber-100 text-amber-700 text-sm font-bold flex items-center justify-center flex-shrink-0" aria-hidden="true">
                         {step}
                       </div>
                       <div>
@@ -428,25 +411,22 @@ export default function DemoPage() {
                 </ol>
               </div>
 
-              {/* Our promise */}
               <div className="bg-navy-900 rounded-2xl p-6 text-white">
-                <p className="text-sm font-semibold text-amber-400 mb-2">Our promise</p>
+                <p className="text-sm font-semibold text-amber-400 mb-2">Controlled pilot process</p>
                 <p className="text-sm text-slate-300 leading-relaxed">
-                  If Pivot AI doesn&apos;t improve your lead capture in 14 days,
-                  we&apos;ll help you figure out why — no questions asked, no
-                  billing activated.
+                  A demo request is only an evaluation request. Activation, integrations, testing,
+                  pricing, and any pilot period are agreed separately after review.
                 </p>
               </div>
 
-              {/* What's included */}
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                <h3 className="text-sm font-semibold text-navy-900 mb-4">Included in every trial</h3>
+                <h3 className="text-sm font-semibold text-navy-900 mb-4">What we evaluate</h3>
                 <ul className="space-y-3">
                   {[
-                    { icon: Phone, text: 'AI receptionist, configured for your business' },
-                    { icon: Users, text: 'Founder-led onboarding and knowledge base setup' },
-                    { icon: CheckCircle2, text: 'Lead capture, SMS follow-up, call transcripts' },
-                    { icon: Calendar, text: 'Appointment booking with Google Calendar sync' },
+                    { icon: Phone, text: 'Call types, greeting, routing, and escalation needs' },
+                    { icon: Users, text: 'Business owners, staff roles, and onboarding effort' },
+                    { icon: CheckCircle2, text: 'Lead capture and follow-up requirements' },
+                    { icon: Calendar, text: 'Appointment-booking and calendar integration needs' },
                   ].map(({ icon: Icon, text }) => (
                     <li key={text} className="flex items-start gap-3">
                       <div className="h-6 w-6 rounded-md bg-amber-50 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -458,15 +438,11 @@ export default function DemoPage() {
                 </ul>
               </div>
 
-              {/* Direct contact */}
               <div className="flex items-center gap-3 px-1">
                 <Mail className="h-4 w-4 text-slate-400 flex-shrink-0" aria-hidden="true" />
                 <div>
                   <p className="text-xs text-slate-500">Prefer email?</p>
-                  <a
-                    href="mailto:hello@pivotcalls.co"
-                    className="text-sm font-semibold text-navy-900 hover:text-amber-600 transition-colors"
-                  >
+                  <a href="mailto:hello@pivotcalls.co" className="text-sm font-semibold text-navy-900 hover:text-amber-600 transition-colors">
                     hello@pivotcalls.co
                   </a>
                 </div>
