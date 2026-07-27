@@ -20,8 +20,8 @@ export function Pricing() {
             Transparent plans for every business
           </h2>
           <p className="text-lg text-slate-500 leading-relaxed">
-            No hidden fees. No long-term contracts. Start your 14-day free trial
-            today — no credit card required.
+            Pilot onboarding is currently founder-assisted. Request a demo to confirm fit,
+            availability, configuration and the right plan for your business.
           </p>
         </div>
 
@@ -141,7 +141,8 @@ export function Pricing() {
 
         {/* Footer note */}
         <p className="text-center text-sm text-slate-400 mt-10">
-          All plans include a 14-day free trial. Cancel anytime. Need something custom?{' '}
+          Requesting a demo does not create an account, start a subscription or charge a card.
+          Need something custom?{' '}
           <Link
             href="/contact"
             className="text-navy-900 font-medium hover:text-amber-600 transition-colors underline underline-offset-4"
