@@ -19,73 +19,73 @@ const features = [
     icon: Phone,
     title: 'AI Receptionist',
     description:
-      'Your 24/7 professional phone representative, powered by advanced AI. Answers every call in your business name.',
+      'Answers configured call scenarios in your business name using the approved greeting, hours, fallback rules and knowledge reviewed during pilot setup.',
   },
   {
     icon: MessageSquare,
     title: 'Missed Call Recovery',
     description:
-      'Automatically texts back any missed callers within seconds, so no potential customer ever goes uncontacted.',
+      'Supports configured missed-call follow-up workflows when messaging, consent and carrier requirements are enabled for the pilot.',
   },
   {
     icon: Calendar,
-    title: 'Appointment Booking',
+    title: 'Appointment Requests',
     description:
-      'Collects caller details, service needs, and preferred times — then creates confirmed appointments automatically.',
+      'Collects caller details, service needs and preferred times so your team can review, confirm, complete or cancel the resulting request.',
   },
   {
     icon: RefreshCw,
-    title: 'Google Calendar Sync',
+    title: 'Google Calendar Integration',
     description:
-      'Syncs booked appointments to Google Calendar. No manual entry, no double bookings, no missed appointments.',
+      'Can synchronize approved appointment workflows with Google Calendar after account authorization and protected real-account validation.',
   },
   {
     icon: Smartphone,
     title: 'SMS Notifications',
     description:
-      'Instant text alerts for every lead, booking, and caller message — sent to you and your customer immediately.',
+      'Sends configured text notifications only when the relevant messaging, consent, recipient and carrier requirements are enabled.',
   },
   {
     icon: Mail,
-    title: 'Email Confirmations',
+    title: 'Email Notifications',
     description:
-      'Professional, branded confirmation emails to both callers and business owners after every interaction.',
+      'Supports configured owner and customer email notifications with delivery evidence and recoverable failure handling.',
   },
   {
     icon: GitFork,
-    title: 'Smart Call Routing',
+    title: 'Call Routing',
     description:
-      'Intelligently routes callers based on intent, availability, and urgency.',
+      'Supports approved routing and transfer scenarios subject to destination availability, carrier behavior and live pilot testing.',
   },
   {
     icon: BookOpen,
     title: 'Knowledge Base',
     description:
-      'Answers common questions using your business information — hours, pricing, services, and FAQs — instantly.',
+      'Uses reviewed business information for common questions and should fall back rather than invent unsupported prices, policies or answers.',
   },
   {
     icon: Mic,
-    title: 'Natural AI Voice',
+    title: 'Conversational Voice',
     description:
-      'Powered by Google\'s most advanced voice technology. Callers hear a professional, warm, human-like voice.',
+      'Provides a configurable virtual-assistant voice. Quality can vary by phone connection, caller speech and provider conditions.',
   },
   {
     icon: Globe,
-    title: 'English-Language AI',
+    title: 'English-Language Pilot',
     description:
-      'Natural, professional call handling in English. Spanish and additional languages are on our roadmap.',
+      'Current production validation is focused on English call handling. Additional language support requires separate quality testing.',
   },
   {
     icon: LayoutDashboard,
     title: 'Business Dashboard',
     description:
-      'See every call, lead, booking, and transcript in one clean dashboard. Your entire call history at a glance.',
+      'Provides tenant-scoped views of available calls, leads, appointment requests, messages and operational evidence for review.',
   },
   {
     icon: Users,
     title: 'Lead Capture',
     description:
-      'Every caller becomes a lead. Name, phone, email, service request, and intent recorded on every call.',
+      'Captures available caller details and service intent when the conversation provides them; incomplete information remains visibly incomplete.',
   },
 ]
 
@@ -96,14 +96,14 @@ export function Features() {
         {/* Header */}
         <div className="text-center mb-16 max-w-3xl mx-auto">
           <p className="text-sm font-semibold text-amber-600 uppercase tracking-wider mb-3">
-            Everything You Need
+            Pilot Capabilities
           </p>
           <h2 className="text-4xl sm:text-5xl font-bold text-navy-900 mb-5 text-balance">
-            One platform to handle every call
+            Configured around your approved call workflow
           </h2>
           <p className="text-lg text-slate-500 leading-relaxed">
-            Pivot AI comes fully loaded with every tool your business needs to
-            capture leads, book appointments, and serve customers around the clock.
+            Capabilities are enabled and validated by pilot configuration. Availability depends on
+            the selected plan, provider setup and the workflows approved before activation.
           </p>
         </div>
 
