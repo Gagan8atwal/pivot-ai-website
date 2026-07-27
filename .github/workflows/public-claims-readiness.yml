@@ -5,10 +5,15 @@ on:
     branches: [main]
     paths:
       - "app/pricing/**"
+      - "components/sections/hero.tsx"
+      - "components/sections/cta.tsx"
+      - "components/sections/how-it-works.tsx"
+      - "components/sections/features.tsx"
       - "components/sections/pricing.tsx"
       - "components/sections/faq.tsx"
       - "lib/pricing.ts"
       - "scripts/pricing.test.mjs"
+      - "scripts/public-claims.test.mjs"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/public-claims-readiness.yml"
@@ -49,13 +54,16 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
 
-      - name: Run pricing and public-claim regression
+      - name: Run focused public-claims regressions
         id: regression
         continue-on-error: true
         shell: bash
         run: |
           set -o pipefail
-          node scripts/pricing.test.mjs 2>&1 | tee public-claims-regression.log
+          {
+            node scripts/pricing.test.mjs
+            node scripts/public-claims.test.mjs
+          } 2>&1 | tee public-claims-regression.log
 
       - name: Run complete repository regression
         id: full_regression
