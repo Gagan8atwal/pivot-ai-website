@@ -87,7 +87,7 @@ test('how-it-works requires testing before activation', () => {
 
 test('feature section describes conditional provider capabilities', () => {
   const source = read('components/sections/features.tsx')
-  assert.match(source, /when enabled/i)
+  assert.match(source, /requirements are enabled/i)
   assert.match(source, /subject to/i)
   assert.match(source, /requires separate quality testing/i)
 })
