@@ -294,13 +294,6 @@ export default function TermsPage() {
                 </a>
               </address>
             </section>
-
-            <section className="rounded-xl border border-slate-200 bg-slate-50 p-5 text-sm">
-              <p>
-                These Terms are a product-operational draft for early access and should be reviewed by
-                qualified counsel before broad commercial launch, regulated use, or material contractual reliance.
-              </p>
-            </section>
           </div>
         </div>
       </main>
