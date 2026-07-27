@@ -41,20 +41,20 @@ export function Hero() {
             </Badge>
 
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.05] tracking-tight text-balance mb-6">
-              Never Miss{' '}
-              <span className="text-amber-400">Another</span>{' '}
-              Customer Call.
+              Reduce Missed{' '}
+              <span className="text-amber-400">Customer</span>{' '}
+              Calls.
             </h1>
 
             <p className="text-lg sm:text-xl text-slate-300 leading-relaxed mb-8 max-w-lg mx-auto lg:mx-0">
-              Pivot AI answers calls 24/7, captures leads, books
-              appointments, and sends SMS follow-up — built for local service businesses.
+              Pivot AI is designed to answer eligible calls around the clock, capture leads,
+              record appointment requests, and support configured SMS follow-up for local service businesses.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-10">
               <Link href="/demo">
                 <Button variant="amber" size="xl" className="w-full sm:w-auto group">
-                  Get a Free Demo
+                  Request a Pilot Demo
                   <ArrowRight
                     className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1"
                     aria-hidden="true"
@@ -77,7 +77,7 @@ export function Hero() {
               {[
                 'Founder-led onboarding',
                 'Early access pilots',
-                'No credit card required',
+                'Demo requests do not activate service',
               ].map((item) => (
                 <div key={item} className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-amber-400 flex-shrink-0" aria-hidden="true" />
@@ -102,11 +102,11 @@ export function Hero() {
                       <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-400 border-2 border-navy-950 animate-pulse" aria-hidden="true" />
                     </div>
                     <div>
-                      <p className="text-xs text-slate-400 uppercase tracking-wider">Incoming Call</p>
+                      <p className="text-xs text-slate-400 uppercase tracking-wider">Example Call</p>
                       <p className="text-sm font-semibold text-white">+1 (559) 234-5678</p>
                     </div>
                   </div>
-                  <Badge variant="success" className="text-xs">Live</Badge>
+                  <Badge variant="success" className="text-xs">Pilot Preview</Badge>
                 </div>
 
                 {/* AI response */}
@@ -116,9 +116,9 @@ export function Hero() {
                       <span className="text-xs font-bold text-navy-900">AI</span>
                     </div>
                     <div>
-                      <p className="text-xs text-slate-400 mb-1">Pivot AI Receptionist</p>
+                      <p className="text-xs text-slate-400 mb-1">Virtual Receptionist</p>
                       <p className="text-sm text-white leading-relaxed">
-                        &ldquo;Thanks for calling! How can I help
+                        &ldquo;Thanks for calling. I&apos;m the virtual assistant. How can I help
                         you today?&rdquo;
                       </p>
                     </div>
@@ -133,18 +133,18 @@ export function Hero() {
                     <div>
                       <p className="text-xs text-slate-400 mb-1">Caller</p>
                       <p className="text-sm text-white leading-relaxed">
-                        &ldquo;I need my AC serviced. Can I book for next Tuesday?&rdquo;
+                        &ldquo;I need my AC serviced. Can I request next Tuesday?&rdquo;
                       </p>
                     </div>
                   </div>
                 </div>
 
-                {/* Actions taken */}
+                {/* Example workflow evidence */}
                 <div className="space-y-2.5 pt-4 border-t border-white/10">
                   {[
-                    { icon: CheckCircle2, label: 'Lead captured', color: 'text-green-400' },
-                    { icon: Calendar, label: 'Appointment booked — Tue 2PM', color: 'text-amber-400' },
-                    { icon: MessageSquare, label: 'Owner notified', color: 'text-blue-400' },
+                    { icon: CheckCircle2, label: 'Lead details captured', color: 'text-green-400' },
+                    { icon: Calendar, label: 'Appointment request — Tue 2PM', color: 'text-amber-400' },
+                    { icon: MessageSquare, label: 'Owner notification queued', color: 'text-blue-400' },
                   ].map(({ icon: Icon, label, color }) => (
                     <div key={label} className="flex items-center gap-2.5">
                       <Icon className={`h-4 w-4 flex-shrink-0 ${color}`} aria-hidden="true" />
@@ -154,14 +154,14 @@ export function Hero() {
                 </div>
               </div>
 
-              {/* Floating stat cards */}
+              {/* Floating pilot cards */}
               <div className="absolute -left-6 top-8 bg-white rounded-xl shadow-xl px-4 py-3 hidden lg:block">
-                <p className="text-xs text-slate-500 font-medium">Availability</p>
-                <p className="text-xl font-bold text-navy-900">24/7</p>
+                <p className="text-xs text-slate-500 font-medium">Coverage</p>
+                <p className="text-xl font-bold text-navy-900">Configured</p>
               </div>
               <div className="absolute -right-4 bottom-12 bg-white rounded-xl shadow-xl px-4 py-3 hidden lg:block">
                 <p className="text-xs text-slate-500 font-medium">Status</p>
-                <p className="text-xl font-bold text-navy-900 text-green-600">Active</p>
+                <p className="text-xl font-bold text-navy-900 text-amber-600">Early Access</p>
               </div>
             </div>
           </div>
