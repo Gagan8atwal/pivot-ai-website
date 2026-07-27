@@ -18,7 +18,7 @@ assert.match(page, /onStatusChange\(appointment, 'completed'\)/)
 assert.match(page, /onStatusChange\(appointment, 'cancelled'\)/)
 assert.match(page, /role="alert"/)
 assert.match(page, /Review appointment requests/)
-assert.match(page, /captured a requested time/)
+assert.match(page, /capture(?:s|d) a requested time/)
 assert.doesNotMatch(page, /Everything Pivot AI books for you/)
 assert.doesNotMatch(page, /When Pivot AI books a caller/)
 
