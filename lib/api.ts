@@ -432,6 +432,122 @@ export interface AssistantRun {
   [k: string]: unknown
 }
 
+// ─── Website import (GET/POST /app/assistant/import*) ────────────────────────
+//
+// The import proposes; it never writes settings. `applied` is carried on every
+// shape below and is always false in this release, so the UI has a real field
+// to render rather than an assumption to make.
+
+export interface ImportJob {
+  id: string
+  requested_url: string
+  resolved_url?: string | null
+  status: 'queued' | 'running' | 'succeeded' | 'partial' | 'failed' | 'blocked' | string
+  /** Guard vocabulary: blocked_scheme, resolves_to_private, timeout, … */
+  error_class?: string | null
+  error_detail?: string | null
+  pages_fetched?: number | null
+  created_at?: string | null
+  completed_at?: string | null
+}
+
+export interface ImportPage {
+  id: string
+  url: string
+  final_url?: string | null
+  http_status?: number | null
+  byte_count?: number | null
+  status: 'fetched' | 'skipped' | 'blocked' | 'failed' | string
+  skip_reason?: string | null
+}
+
+export interface ImportReview {
+  id: string
+  candidate_id: string
+  decision: 'accepted' | 'rejected' | 'edited' | 'deferred' | string
+  edited_value?: string | null
+  note?: string | null
+  /** Null until a separate approved change actually applies the value. */
+  applied_at?: string | null
+  created_at?: string | null
+}
+
+export interface ImportCandidate {
+  id: string
+  field_key: string
+  value_text?: string | null
+  value_json?: unknown
+  /** `verified` = read from structured markup. `inferred` = guessed from prose. */
+  derivation: 'verified' | 'inferred' | string
+  confidence: number
+  source_url?: string | null
+  evidence?: string | null
+  /** Prices, guarantees, regulated claims. Never auto-acceptable at any confidence. */
+  high_risk: boolean
+  risk_reason?: string | null
+  /** Another page on the same site gave a different value for this field. */
+  conflict?: boolean
+  review?: ImportReview | null
+  applied: boolean
+}
+
+export interface ImportSummary {
+  pagesFetched: number
+  pagesBlocked: number
+  candidates: number
+  verified: number
+  inferred: number
+  highRisk: number
+  conflicts: number
+  injectionPages: number
+}
+
+export interface ImportStartResponse {
+  jobId: string
+  status: ImportJob['status']
+  summary: ImportSummary
+  applied: false
+  note: string
+}
+
+export interface ImportJobDetail {
+  job: ImportJob
+  pages: ImportPage[]
+  candidates: ImportCandidate[]
+}
+
+// ─── Approved configuration changes (Level 1 writes) ─────────────────────────
+//
+// The assistant proposes; a person approves; applying is a third, separate
+// call. `applied` and `verified` are distinct on purpose — a change can be
+// applied and still not confirmed to have landed, and the UI must not collapse
+// those into a tick.
+
+export interface WriteDiff {
+  field: string
+  label: string
+  current: unknown
+  proposed: unknown
+  unchanged: boolean
+  summary: string
+}
+
+export interface WriteApproval {
+  id: string
+  tool_name: string
+  status: 'pending' | 'approved' | 'rejected' | 'expired' | 'applied' | 'undone' | string
+  proposed_input?: { field?: string; value?: unknown } | null
+  current_value?: Record<string, unknown> | null
+  proposed_value?: Record<string, unknown> | null
+  expires_at?: string | null
+  created_at?: string | null
+  decided_at?: string | null
+  applied_at?: string | null
+  /** Set only when a re-read confirmed the value actually changed. */
+  verified_at?: string | null
+  undone_at?: string | null
+}
+
 // ─── Typed API surface ────────────────────────────────────────────────────────
 export const api = {
   // Auth (token attached only where the contract requires it)
@@ -544,6 +660,95 @@ export const api = {
     /** Tool audit trail — successful *and* refused runs. */
     activity: () =>
       apiFetch<unknown>('/app/assistant/activity').then((r) => pickArray<AssistantRun>(r, 'runs')),
+
+    /**
+     * Website import. Reads a customer's site under the SSRF guard and returns
+     * candidates to review. Nothing it returns has been applied.
+     */
+    imports: {
+      /** Admin only. 409 when an import is already running for this tenant. */
+      start: (body: { url: string }) =>
+        apiFetch<ImportStartResponse>('/app/assistant/import', { method: 'POST', body }),
+      list: () =>
+        apiFetch<unknown>('/app/assistant/imports').then((r) => pickArray<ImportJob>(r, 'jobs')),
+      get: (jobId: string) => apiFetch<ImportJobDetail>(`/app/assistant/imports/${jobId}`),
+      /** Records a decision. Does not apply it — `applied` comes back false. */
+      review: (
+        candidateId: string,
+        body: {
+          decision: 'accepted' | 'rejected' | 'edited' | 'deferred'
+          editedValue?: string
+          note?: string
+          /**
+           * Required to accept or edit a high-risk value (a price, a guarantee,
+           * a medical/legal/financial claim). Omitting it returns 422 with
+           * `high_risk_requires_acknowledgement` — deliberately, so that
+           * confirming a scraped price is a distinct thing the customer did and
+           * not a side effect of clicking the same button as everything else.
+           */
+          acknowledgeRisk?: boolean
+        }
+      ) =>
+        apiFetch<{ review: ImportReview; applied: false; note: string }>(
+          `/app/assistant/imports/candidates/${candidateId}/review`,
+          { method: 'POST', body }
+        ),
+    },
+
+    /**
+     * Level 1 configuration changes. Four separate calls because propose,
+     * decide, apply and undo are four distinct authenticated acts — collapsing
+     * any two would recreate a single call that both requests and performs a
+     * change.
+     */
+    writes: {
+      catalogue: () =>
+        apiFetch<{ tools: string[]; requiresApproval: true; note: string }>('/app/assistant/writes'),
+      /** Returns a diff and a pending approval. Writes nothing. */
+      propose: (body: { tool: string; value: unknown; conversationId?: string }) =>
+        apiFetch<{ approval: WriteApproval; diff: WriteDiff; applied: false; note: string }>(
+          '/app/assistant/writes/propose',
+          { method: 'POST', body }
+        ),
+      /** Approving is not applying — apply re-checks state before writing. */
+      decide: (approvalId: string, body: { decision: 'approved' | 'rejected' }) =>
+        apiFetch<{ approval: WriteApproval; applied: false; note: string }>(
+          `/app/assistant/writes/${approvalId}/decide`,
+          { method: 'POST', body }
+        ),
+      /** 409 `state_changed` when someone edited the setting in the meantime. */
+      apply: (approvalId: string) =>
+        apiFetch<{ applied: true; verified: boolean; field: string; warning?: string }>(
+          `/app/assistant/writes/${approvalId}/apply`,
+          { method: 'POST' }
+        ),
+      undo: (approvalId: string) =>
+        apiFetch<{ undone: true; verified: boolean; field: string }>(
+          `/app/assistant/writes/${approvalId}/undo`,
+          { method: 'POST' }
+        ),
+      /**
+       * Turn reviewed import candidates into pending approvals.
+       *
+       * Creates proposals only — `applied` comes back false. Without this the
+       * approvals screen has no producer at all: the model is deliberately
+       * barred from proposing, so a human pressing this button is the only way
+       * a change ever reaches the approval queue.
+       */
+      applyReviewedImport: () =>
+        apiFetch<{
+          created: { approvalId: string; field: string }[]
+          skipped: { field: string; reason: string }[]
+          failed: { field: string; error: string }[]
+          applied: false
+          note: string
+        }>('/app/assistant/onboarding/apply-import', { method: 'POST' }),
+
+      history: () =>
+        apiFetch<unknown>('/app/assistant/writes/history').then((r) =>
+          pickArray<WriteApproval>(r, 'approvals')
+        ),
+    },
   },
 
   knowledge: {
