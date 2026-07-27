@@ -1,0 +1,121 @@
+name: Public Claims Readiness
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/pricing/**"
+      - "app/privacy/**"
+      - "app/terms/**"
+      - "components/sections/hero.tsx"
+      - "components/sections/cta.tsx"
+      - "components/sections/how-it-works.tsx"
+      - "components/sections/features.tsx"
+      - "components/sections/pricing.tsx"
+      - "components/sections/faq.tsx"
+      - "lib/pricing.ts"
+      - "scripts/pricing.test.mjs"
+      - "scripts/public-claims.test.mjs"
+      - "scripts/legal-policy.test.mjs"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/public-claims-readiness.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: public-claims-readiness-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_API_BASE: https://example.invalid
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: test-anon-key
+      SUPABASE_URL: https://example.supabase.co
+      SUPABASE_SERVICE_ROLE_KEY: test-service-role-key
+      DASHBOARD_OWNER_ID: 00000000-0000-4000-8000-000000000000
+      OWNER_EMAIL: owner@example.com
+      FROM_EMAIL: Pivot AI <hello@example.com>
+      RESEND_API_KEY: re_test_key
+
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Run focused public-claims and policy regressions
+        id: regression
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          {
+            node scripts/pricing.test.mjs
+            node scripts/public-claims.test.mjs
+            node scripts/legal-policy.test.mjs
+          } 2>&1 | tee public-claims-regression.log
+
+      - name: Run complete repository regression
+        id: full_regression
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee public-claims-full-regression.log
+
+      - name: Lint
+        id: lint
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run lint 2>&1 | tee public-claims-lint.log
+
+      - name: Production build
+        id: build
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run build 2>&1 | tee public-claims-build.log
+
+      - name: Upload verification logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-claims-readiness-logs
+          path: |
+            public-claims-regression.log
+            public-claims-full-regression.log
+            public-claims-lint.log
+            public-claims-build.log
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Enforce verification result
+        if: always()
+        env:
+          REGRESSION_OUTCOME: ${{ steps.regression.outcome }}
+          FULL_REGRESSION_OUTCOME: ${{ steps.full_regression.outcome }}
+          LINT_OUTCOME: ${{ steps.lint.outcome }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+        run: |
+          echo "focused=$REGRESSION_OUTCOME full=$FULL_REGRESSION_OUTCOME lint=$LINT_OUTCOME build=$BUILD_OUTCOME"
+          test "$REGRESSION_OUTCOME" = "success"
+          test "$FULL_REGRESSION_OUTCOME" = "success"
+          test "$LINT_OUTCOME" = "success"
+          test "$BUILD_OUTCOME" = "success"

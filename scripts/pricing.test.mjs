@@ -1,16 +1,21 @@
 #!/usr/bin/env node
 /**
- * Regression tests for plan pricing.
+ * Regression tests for plan pricing and public pricing claims.
  *
  * Guards the defect where the in-app billing page advertised
  * "Starter $99 / Pro $249 / Scale $599" while the marketing site advertised
  * the real "Starter $49 / Pro $149 / Premium $299". Wrong prices and a plan
  * ("Scale") that does not exist in Stripe were shown to signed-in customers.
  *
+ * It also guards the later cumulative-release defect where public pages restored
+ * unsupported self-service trial and no-card claims even though acquisition was
+ * still a founder-assisted pilot flow.
+ *
  * The fix is `lib/pricing.ts` as the single source of truth. These tests pin
- * the amounts and names, and assert that no surface re-declares its own price
- * table. Imports the pure TypeScript module directly — Node (>=22.18 / 24)
- * strips the types at load. No test-runner dependency. Run with `npm test`.
+ * the amounts, names, CTA contract and public claim boundary, and assert that no
+ * surface re-declares its own price table. Imports the pure TypeScript module
+ * directly — Node (>=22.18 / 24) strips the types at load. No test-runner
+ * dependency. Run with `npm test`.
  */
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
@@ -108,6 +113,17 @@ test('every plan has a CTA label and target, and at least one feature', () => {
   }
 })
 
+test('Starter and Pro request a pilot demo rather than claiming self-service activation', () => {
+  for (const id of ['starter', 'pro']) {
+    const plan = getPlan(id)
+    assert.ok(plan)
+    assert.equal(plan.cta, 'Request Pilot Demo')
+    assert.equal(plan.ctaHref, '/demo')
+  }
+  assert.equal(getPlan('premium').cta, 'Contact Sales')
+  assert.equal(getPlan('premium').ctaHref, '/contact')
+})
+
 test('exactly one plan is highlighted as most popular', () => {
   assert.equal(PRICING_PLANS.filter((p) => p.highlight).length, 1)
 })
@@ -161,6 +177,42 @@ test('the /pricing route reuses the shared pricing section', () => {
     ['$149', '$149', '$299', '$299', '$49', '$49'],
     'only the SEO description may quote prices, and it must quote 49/149/299',
   )
+})
+
+console.log('\npublic acquisition claims — founder-assisted pilot only')
+
+const PUBLIC_CLAIM_SURFACES = [
+  'app/pricing/page.tsx',
+  'components/sections/pricing.tsx',
+  'components/sections/faq.tsx',
+  'lib/pricing.ts',
+]
+
+const FORBIDDEN_TRIAL_CLAIMS = [
+  /14-day\s+free\s+trial/i,
+  /start\s+free\s+trial/i,
+  /no\s+credit\s+card\s+required/i,
+  /zero\s+financial\s+risk/i,
+]
+
+for (const rel of PUBLIC_CLAIM_SURFACES) {
+  test(`${rel} contains no unsupported self-service trial claim`, () => {
+    const src = read(rel)
+    for (const pattern of FORBIDDEN_TRIAL_CLAIMS) {
+      assert.doesNotMatch(src, pattern, `${rel} contains unsupported claim ${pattern}`)
+    }
+  })
+}
+
+test('pricing surfaces state that demo requests do not activate or charge', () => {
+  const src = read('components/sections/pricing.tsx')
+  assert.match(src, /does not create an account, start a subscription or charge a card/i)
+})
+
+test('pricing and FAQ describe founder-assisted or reviewed pilot onboarding', () => {
+  assert.match(read('components/sections/pricing.tsx'), /founder-assisted/i)
+  assert.match(read('app/pricing/page.tsx'), /pilot demo/i)
+  assert.match(read('components/sections/faq.tsx'), /pilot/i)
 })
 
 if (failures > 0) {

@@ -4,26 +4,26 @@ const steps = [
   {
     number: '01',
     icon: Settings2,
-    title: 'We configure your AI Receptionist',
+    title: 'We configure and review your pilot',
     description:
-      'Tell us about your business — your services, hours, pricing, and common questions. Our team configures your AI receptionist for your specific needs. No technical knowledge required.',
+      'Tell us about your business — services, hours, approved pricing, policies and common questions. Our team configures the receptionist and reviews the intended workflows with you before activation.',
     highlight: 'Founder-led setup',
   },
   {
     number: '02',
     icon: Phone,
-    title: 'Every call is answered',
+    title: 'We test your call coverage',
     description:
-      'Your existing phone number routes to Pivot AI. Every call is answered 24/7 — nights, weekends, and holidays included. Callers hear a professional, natural-sounding AI voice.',
-    highlight: '24/7 Availability',
+      'We review the available forwarding or number configuration, business hours, fallback behavior and eligible call scenarios. Live coverage begins only after the approved phone path has been tested.',
+    highlight: 'Protected pilot validation',
   },
   {
     number: '03',
     icon: TrendingUp,
-    title: 'You capture leads automatically',
+    title: 'You review captured opportunities',
     description:
-      'The AI books appointments, captures contact details, and notifies you immediately by email and SMS. Every conversation is logged, and leads are saved so you can follow up.',
-    highlight: 'Automated lead capture',
+      'Configured calls can capture contact details, record appointment requests and create owner notifications. You review the dashboard and follow up rather than assuming every request is a confirmed booking.',
+    highlight: 'Reviewed lead workflow',
   },
 ]
 
@@ -37,11 +37,11 @@ export function HowItWorks() {
             How It Works
           </p>
           <h2 className="text-4xl sm:text-5xl font-bold text-navy-900 mb-5 text-balance">
-            Simple setup. Never miss a call again.
+            Assisted setup. Tested before activation.
           </h2>
           <p className="text-lg text-slate-500 leading-relaxed">
-            Getting started with Pivot AI is simple. We handle the configuration
-            so you can focus on running your business.
+            Pivot AI is currently delivered through a founder-assisted pilot. We configure,
+            test and review the workflow with you before live customer calls are enabled.
           </p>
         </div>
 

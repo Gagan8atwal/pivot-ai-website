@@ -1,308 +1,422 @@
-/**
- * POST /api/demo
- *
- * Flow (lead-save is the source of truth; everything after it is best-effort
- * and must NOT break the submission):
- *   1. Parse JSON body
- *   2. Honeypot check (company_website)
- *   3. Validate required fields + consent
- *   4. Sanitize / trim all strings
- *   5. INSERT into demo_requests via service-role key
- *      → DB failure  : log + return 500 (never fake success)
- *   6. Google Calendar event (best-effort, structured result, never throws)
- *   7. Owner notification email (branded, best-effort)
- *   8. Customer confirmation email (branded, best-effort, only if email given)
- *   9. Return 200 { ok: true }
- *
- * Security:
- *   - SUPABASE_SERVICE_ROLE_KEY / GOOGLE_* / RESEND_API_KEY are server-only here.
- *   - Never imported by any 'use client' file.
- *   - No secrets are logged; only safe error messages are returned to the UI.
- */
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { NextResponse } from 'next/server'
+import { Resend } from 'resend'
 
-import { createClient } from "@supabase/supabase-js";
-import { Resend } from "resend";
-import { NextResponse } from "next/server";
-import { createDemoCalendarEvent, type CalendarResult } from "@/lib/google-calendar";
 import {
+  CUSTOMER_EMAIL_SUBJECT,
+  customerEmailHtml,
   ownerEmailHtml,
   ownerEmailSubject,
-  customerEmailHtml,
-  CUSTOMER_EMAIL_SUBJECT,
   type DemoEmailData,
-} from "@/lib/demo-emails";
+} from '@/lib/demo-emails'
+import { createDemoCalendarEvent, type CalendarResult } from '@/lib/google-calendar'
+import {
+  SMS_CONSENT_METHOD,
+  SMS_CONSENT_TEXT,
+  boundedText,
+  isUuid,
+  isValidEmail,
+  isValidPhone,
+  normalizeEmail,
+  normalizePhone,
+  phoneDigits,
+  splitName,
+} from '@/lib/intake'
+import {
+  IntakeRequestError,
+  parseSubmissionMeta,
+  rateLimitWindowStart,
+  readJsonObject,
+  requestIp,
+  safeErrorMessage,
+  validatePublicFormOrigin,
+} from '@/lib/intake-server'
+import {
+  recordIntakeEmailFailure,
+  sendTrackedIntakeEmail,
+  type IntakeEmailResult,
+} from '@/lib/intake-email'
 
-// ─── Supabase (service role – bypasses RLS, server-only) ─────────────────────
-function getSupabase() {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) {
-    throw new Error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+const OWNER_ID_FALLBACK = '3fbf8a9e-0185-4445-868b-2b93258080cb'
+const RESPONSE_HEADERS = { 'Cache-Control': 'no-store' }
+
+function json(body: unknown, status = 200) {
+  return NextResponse.json(body, { status, headers: RESPONSE_HEADERS })
+}
+
+function getSupabase(): SupabaseClient {
+  const url = process.env.SUPABASE_URL?.trim()
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
+  if (!url || !key) throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
+  return createClient(url, key, { auth: { persistSession: false } })
+}
+
+function getOwnerId(): string {
+  const value = process.env.DASHBOARD_OWNER_ID?.trim() || OWNER_ID_FALLBACK
+  if (!isUuid(value)) throw new Error('DASHBOARD_OWNER_ID is not a valid UUID')
+  return value.toLowerCase()
+}
+
+function sameDemoRequest(
+  existing: Record<string, unknown>,
+  expected: {
+    name: string
+    businessName: string
+    email: string
+    phone: string
+    industry: string
+    notes: string | null
+    consent: boolean
   }
-  return createClient(url, key, {
-    auth: { persistSession: false },
-  });
-}
-
-// Single-tenant fallback — safe to inline as it's a non-secret UUID
-const OWNER_ID_FALLBACK = "3fbf8a9e-0185-4445-868b-2b93258080cb";
-
-function getCrmSupabase() {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) return null;
-  const ownerId = process.env.DASHBOARD_OWNER_ID ?? OWNER_ID_FALLBACK;
-  return { client: createClient(url, key, { auth: { persistSession: false } }), ownerId };
-}
-
-function splitName(fullName: string): [string, string | null] {
-  const parts = fullName.trim().split(/\s+/);
-  if (parts.length === 1) return [parts[0], null];
-  return [parts[0], parts.slice(1).join(" ")];
-}
-
-// ─── Resend ───────────────────────────────────────────────────────────────────
-function getResend() {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) throw new Error("Missing RESEND_API_KEY");
-  return new Resend(key);
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function trim(v: unknown, max = 500): string {
-  return typeof v === "string" ? v.trim().slice(0, max) : "";
-}
-
-function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-function getIp(request: Request): string {
+): boolean {
   return (
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown"
-  );
+    existing.name === expected.name &&
+    (existing.business_name ?? '') === expected.businessName &&
+    normalizeEmail(existing.email) === expected.email &&
+    phoneDigits(normalizePhone(existing.phone)) === phoneDigits(expected.phone) &&
+    (existing.industry ?? '') === expected.industry &&
+    (existing.notes ?? null) === expected.notes &&
+    existing.sms_consent === expected.consent
+  )
 }
 
-// Exact SMS consent text shown on the demo form
-const SMS_CONSENT_TEXT =
-  "I agree to receive communications from Pivot AI about my demo request, " +
-  "including text messages. Message and data rates may apply. Reply STOP to " +
-  "opt out at any time. See our Privacy Policy and Terms of Service.";
+function sameCrmLead(
+  existing: Record<string, unknown>,
+  expected: {
+    firstName: string
+    lastName: string | null
+    email: string
+    phone: string
+    businessName: string
+    industry: string
+    message: string | null
+  }
+): boolean {
+  return (
+    existing.source === 'demo_request' &&
+    existing.first_name === expected.firstName &&
+    (existing.last_name ?? null) === expected.lastName &&
+    normalizeEmail(existing.email) === expected.email &&
+    phoneDigits(normalizePhone(existing.phone)) === phoneDigits(expected.phone) &&
+    (existing.business_name ?? '') === expected.businessName &&
+    (existing.industry ?? '') === expected.industry &&
+    (existing.message ?? null) === expected.message
+  )
+}
 
-// ─── Route handler ────────────────────────────────────────────────────────────
+async function syncCrmLead(
+  supabase: SupabaseClient,
+  ownerId: string,
+  submissionId: string,
+  input: {
+    contactName: string
+    email: string
+    phone: string
+    businessName: string
+    industry: string
+    notes: string | null
+  }
+): Promise<'created' | 'existing'> {
+  const [firstName, lastName] = splitName(input.contactName)
+  const expected = {
+    firstName,
+    lastName,
+    email: input.email,
+    phone: input.phone,
+    businessName: input.businessName,
+    industry: input.industry,
+    message: input.notes,
+  }
+
+  const { data: existing, error: lookupError } = await supabase
+    .from('crm_leads')
+    .select('id, source, first_name, last_name, email, phone, business_name, industry, message')
+    .eq('id', submissionId)
+    .maybeSingle()
+
+  if (lookupError) throw lookupError
+  if (existing) {
+    if (!sameCrmLead(existing as Record<string, unknown>, expected)) {
+      throw new IntakeRequestError(
+        409,
+        'This submission identifier was already used. Please refresh and try again.'
+      )
+    }
+    return 'existing'
+  }
+
+  const { error } = await supabase.from('crm_leads').insert({
+    id: submissionId,
+    user_id: ownerId,
+    source: 'demo_request',
+    first_name: firstName,
+    last_name: lastName,
+    email: input.email,
+    phone: input.phone,
+    business_name: input.businessName,
+    industry: input.industry || null,
+    message: input.notes,
+  })
+  if (error) throw error
+  return 'created'
+}
+
+async function trackedOwnerEmail(
+  supabase: SupabaseClient,
+  submissionId: string,
+  data: DemoEmailData
+): Promise<IntakeEmailResult> {
+  const ownerEmail = process.env.OWNER_EMAIL?.trim() || ''
+  const fromEmail = process.env.FROM_EMAIL?.trim() || ''
+  const apiKey = process.env.RESEND_API_KEY?.trim() || ''
+  const subject = ownerEmailSubject(data)
+
+  if (!ownerEmail || !fromEmail || !apiKey) {
+    await recordIntakeEmailFailure({
+      supabase,
+      submissionId,
+      source: 'demo_request',
+      emailType: 'owner_notification',
+      recipient: ownerEmail || 'unconfigured-owner@invalid.local',
+      subject,
+      reason: 'OWNER_EMAIL, FROM_EMAIL, or RESEND_API_KEY is not configured',
+    })
+    return { status: 'failed', reason: 'delivery configuration unavailable' }
+  }
+
+  return sendTrackedIntakeEmail({
+    supabase,
+    resend: new Resend(apiKey),
+    submissionId,
+    source: 'demo_request',
+    emailType: 'owner_notification',
+    recipient: ownerEmail,
+    subject,
+    payload: {
+      from: fromEmail,
+      to: ownerEmail,
+      replyTo: data.email,
+      subject,
+      html: ownerEmailHtml(data),
+    },
+  })
+}
+
+async function trackedCustomerEmail(
+  supabase: SupabaseClient,
+  submissionId: string,
+  data: DemoEmailData
+): Promise<IntakeEmailResult> {
+  const fromEmail = process.env.FROM_EMAIL?.trim() || ''
+  const apiKey = process.env.RESEND_API_KEY?.trim() || ''
+
+  if (!fromEmail || !apiKey) {
+    await recordIntakeEmailFailure({
+      supabase,
+      submissionId,
+      source: 'demo_request',
+      emailType: 'customer_confirmation',
+      recipient: data.email,
+      subject: CUSTOMER_EMAIL_SUBJECT,
+      reason: 'FROM_EMAIL or RESEND_API_KEY is not configured',
+    })
+    return { status: 'failed', reason: 'delivery configuration unavailable' }
+  }
+
+  return sendTrackedIntakeEmail({
+    supabase,
+    resend: new Resend(apiKey),
+    submissionId,
+    source: 'demo_request',
+    emailType: 'customer_confirmation',
+    recipient: data.email,
+    subject: CUSTOMER_EMAIL_SUBJECT,
+    payload: {
+      from: fromEmail,
+      to: data.email,
+      subject: CUSTOMER_EMAIL_SUBJECT,
+      html: customerEmailHtml(data),
+    },
+  })
+}
+
 export async function POST(request: Request) {
-  // ── 1. Parse body ──────────────────────────────────────────────────────────
-  let body: Record<string, unknown>;
   try {
-    body = await request.json();
-  } catch {
-    console.error("[demo] parse_body: FAIL — invalid JSON");
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
-  }
+    validatePublicFormOrigin(request)
+    const body = await readJsonObject(request)
 
-  console.info("[demo] submission_received");
+    if (body.company_website && String(body.company_website).trim() !== '') {
+      return json({ ok: true })
+    }
 
-  // ── 2. Honeypot ────────────────────────────────────────────────────────────
-  if (body.company_website && String(body.company_website).trim() !== "") {
-    console.info("[demo] honeypot: triggered — discarding silently");
-    return NextResponse.json({ ok: true });
-  }
+    const { submissionId } = parseSubmissionMeta(body)
+    const contactName = boundedText(body.contactName, 100)
+    const businessName = boundedText(body.businessName, 200)
+    const email = normalizeEmail(body.email)
+    const phone = normalizePhone(body.phone)
+    const industry = boundedText(body.industry, 100)
+    const employees = boundedText(body.employees, 50)
+    const message = boundedText(body.message, 2_000)
+    const consent = body.consent === true || body.consent === 'true'
 
-  // ── 3. Validate ────────────────────────────────────────────────────────────
-  const contactName = trim(body.contactName, 100);
-  const businessName = trim(body.businessName, 200);
-  const email = trim(body.email, 254);
-  const phone = trim(body.phone, 20);
-  const industry = trim(body.industry, 100);
-  const employees = trim(body.employees, 50);
-  const message = trim(body.message, 2000);
-  const consent = body.consent === true || body.consent === "true";
+    if (!contactName || !businessName || !email || !phone) {
+      throw new IntakeRequestError(400, 'Name, business, email, and phone are required.')
+    }
+    if (!isValidEmail(email)) {
+      throw new IntakeRequestError(400, 'Please enter a valid email address.')
+    }
+    if (!isValidPhone(phone)) {
+      throw new IntakeRequestError(400, 'Please enter a valid phone number.')
+    }
 
-  if (!contactName) {
-    console.warn("[demo] validation: FAIL — contactName missing");
-    return NextResponse.json({ error: "Your name is required." }, { status: 400 });
-  }
-  if (!phone || phone.length < 5) {
-    console.warn("[demo] validation: FAIL — phone missing/short");
-    return NextResponse.json(
-      { error: "A valid phone number is required." },
-      { status: 400 }
-    );
-  }
-  // SMS consent is OPTIONAL (A2P: must be voluntary). We do NOT reject when it's
-  // unchecked — we record the actual value below (sms_consent: consent).
-  if (email && !isValidEmail(email)) {
-    console.warn("[demo] validation: FAIL — invalid email format");
-    return NextResponse.json(
-      { error: "Please enter a valid email address." },
-      { status: 400 }
-    );
-  }
+    const notes = [employees && `Team size: ${employees}`, message]
+      .filter(Boolean)
+      .join('\n\n') || null
+    const supabase = getSupabase()
+    const ownerId = getOwnerId()
 
-  console.info("[demo] validation: PASS");
+    const { data: existing, error: lookupError } = await supabase
+      .from('demo_requests')
+      .select('id, name, business_name, email, phone, industry, notes, sms_consent')
+      .eq('id', submissionId)
+      .maybeSingle()
 
-  // ── 4. Build notes (employees + message → single notes field) ─────────────
-  const notesParts: string[] = [];
-  if (employees) notesParts.push(`Team size: ${employees}`);
-  if (message) notesParts.push(message);
-  const notes = notesParts.join("\n\n") || null;
+    if (lookupError) {
+      console.error('[demo] request_lookup: FAIL —', safeErrorMessage(lookupError))
+      throw new IntakeRequestError(503, 'We could not save your request. Please try again.')
+    }
 
-  // ── 5. Supabase insert (source of truth — 500 on failure) ─────────────────
-  let supabase;
-  try {
-    supabase = getSupabase();
-  } catch (err) {
-    console.error("[demo] supabase_init: FAIL —", (err as Error).message);
-    return NextResponse.json(
-      { error: "Service configuration error. Please try again later." },
-      { status: 500 }
-    );
-  }
-
-  const ip = getIp(request);
-  const userAgent = request.headers.get("user-agent") ?? "unknown";
-
-  const { error: dbError } = await supabase.from("demo_requests").insert({
-    name:                   contactName,
-    business_name:          businessName || null,
-    email:                  email || null,
-    phone,
-    industry:               industry || null,
-    notes,
-    // Authoritative flag: the actual checkbox value (consent is now optional).
-    sms_consent:            consent,
-    // Capture context of what was presented on the form. The boolean above is the
-    // source of truth for whether SMS is permitted; these record the exact language
-    // and request metadata shown at submit time.
-    sms_consent_method:     "web_form",
-    sms_consent_text:       SMS_CONSENT_TEXT,
-    sms_consent_at:         new Date().toISOString(),
-    sms_consent_ip:         ip,
-    sms_consent_user_agent: userAgent,
-  });
-
-  if (dbError) {
-    console.error("[demo] supabase_insert: FAIL —", {
-      code:    dbError.code,
-      message: dbError.message,
-      details: dbError.details,
-      hint:    dbError.hint,
-    });
-    return NextResponse.json(
-      { error: "Failed to save your request. Please try again." },
-      { status: 500 }
-    );
-  }
-
-  console.info("[demo] supabase_insert: PASS");
-
-  // ── 5b. CRM lead insert (best-effort — never breaks the submission) ────────
-  try {
-    const crm = getCrmSupabase();
-    if (crm) {
-      const [firstName, lastName] = splitName(contactName);
-      const crmMessage = notes || null;
-      const { error: crmErr } = await crm.client.from("crm_leads").insert({
-        user_id:       crm.ownerId,
-        source:        "demo_request",
-        first_name:    firstName,
-        last_name:     lastName,
-        email:         email || null,
-        phone:         phone || null,
-        business_name: businessName || null,
-        industry:      industry || null,
-        message:       crmMessage,
-      });
-      if (crmErr) {
-        console.error("[demo] crm_lead_insert: FAIL —", crmErr.message);
-      } else {
-        console.info("[demo] crm_lead_insert: PASS");
+    let duplicate = false
+    if (existing) {
+      duplicate = true
+      if (!sameDemoRequest(existing as Record<string, unknown>, {
+        name: contactName,
+        businessName,
+        email,
+        phone,
+        industry,
+        notes,
+        consent,
+      })) {
+        throw new IntakeRequestError(
+          409,
+          'This submission identifier was already used. Please refresh and try again.'
+        )
       }
     } else {
-      console.warn("[demo] crm_lead_insert: SKIPPED — SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not set");
-    }
-  } catch (crmEx) {
-    console.error("[demo] crm_lead_insert: FAIL (exception) —", (crmEx as Error).message);
-  }
+      const { count, error: rateError } = await supabase
+        .from('demo_requests')
+        .select('id', { count: 'exact', head: true })
+        .eq('email', email)
+        .is('deleted_at', null)
+        .gte('created_at', rateLimitWindowStart())
 
-  // Shared payload for calendar + emails.
-  const data: DemoEmailData = {
-    contactName,
-    businessName,
-    email,
-    phone,
-    industry,
-    employees,
-    message,
-    smsConsent: consent,
-  };
-
-  // ── 6. Google Calendar (best-effort, structured, never throws) ────────────
-  let calendar: CalendarResult;
-  try {
-    calendar = await createDemoCalendarEvent({ ...data });
-  } catch (err) {
-    // Defensive: helper is designed not to throw, but never let it break the form.
-    calendar = { status: "failed", reason: (err as Error)?.message || "unexpected error" };
-  }
-  if (calendar.status === "created") {
-    console.info("[demo] calendar_create: PASS — eventId=%s", calendar.eventId);
-  } else if (calendar.status === "skipped") {
-    console.warn("[demo] calendar_create: SKIPPED — %s", calendar.reason);
-  } else {
-    console.error("[demo] calendar_create: FAIL — %s", calendar.reason);
-  }
-
-  // ── 7. Owner notification email (best-effort) ─────────────────────────────
-  const ownerEmail = process.env.OWNER_EMAIL;
-  const fromEmail = process.env.FROM_EMAIL;
-  if (!ownerEmail || !fromEmail) {
-    console.warn("[demo] owner_email: SKIPPED — OWNER_EMAIL or FROM_EMAIL not set");
-  } else {
-    try {
-      const resend = getResend();
-      const { error } = await resend.emails.send({
-        from: fromEmail,
-        to: ownerEmail,
-        replyTo: email || undefined,
-        subject: ownerEmailSubject(data),
-        html: ownerEmailHtml(data),
-      });
-      if (error) {
-        console.error("[demo] owner_email: FAIL —", error.message ?? String(error));
-      } else {
-        console.info("[demo] owner_email: PASS");
+      if (rateError) {
+        console.error('[demo] rate_limit_query: FAIL —', safeErrorMessage(rateError))
+        throw new IntakeRequestError(503, 'We could not save your request. Please try again.')
       }
-    } catch (err) {
-      console.error("[demo] owner_email: FAIL —", (err as Error).message);
-    }
-  }
-
-  // ── 8. Customer confirmation email (best-effort, only if email provided) ──
-  if (!email) {
-    console.info("[demo] customer_email: SKIPPED — no customer email provided");
-  } else if (!fromEmail) {
-    console.warn("[demo] customer_email: SKIPPED — FROM_EMAIL not set");
-  } else {
-    try {
-      const resend = getResend();
-      const { error } = await resend.emails.send({
-        from: fromEmail,
-        to: email,
-        subject: CUSTOMER_EMAIL_SUBJECT,
-        html: customerEmailHtml(data),
-      });
-      if (error) {
-        console.error("[demo] customer_email: FAIL —", error.message ?? String(error));
-      } else {
-        console.info("[demo] customer_email: PASS");
+      if ((count ?? 0) >= 3) {
+        throw new IntakeRequestError(
+          429,
+          'We already received several recent requests from this email. Please try again later.'
+        )
       }
-    } catch (err) {
-      console.error("[demo] customer_email: FAIL —", (err as Error).message);
-    }
-  }
 
-  // ── 9. Done ────────────────────────────────────────────────────────────────
-  console.info("[demo] request_complete — returning 200");
-  return NextResponse.json({ ok: true });
+      const now = new Date().toISOString()
+      const { error: insertError } = await supabase.from('demo_requests').insert({
+        id: submissionId,
+        name: contactName,
+        business_name: businessName,
+        email,
+        phone,
+        industry: industry || null,
+        notes,
+        sms_consent: consent,
+        sms_consent_method: consent ? SMS_CONSENT_METHOD : null,
+        sms_consent_text: SMS_CONSENT_TEXT,
+        sms_consent_at: consent ? now : null,
+        sms_consent_ip: consent ? requestIp(request) : null,
+        sms_consent_user_agent: consent
+          ? boundedText(request.headers.get('user-agent'), 500) || 'unknown'
+          : null,
+      })
+
+      if (insertError) {
+        console.error('[demo] request_insert: FAIL —', safeErrorMessage(insertError))
+        throw new IntakeRequestError(503, 'We could not save your request. Please try again.')
+      }
+    }
+
+    let crm: 'created' | 'existing'
+    try {
+      crm = await syncCrmLead(supabase, ownerId, submissionId, {
+        contactName,
+        email,
+        phone,
+        businessName,
+        industry,
+        notes,
+      })
+    } catch (error) {
+      if (error instanceof IntakeRequestError) throw error
+      console.error('[demo] crm_sync: FAIL —', safeErrorMessage(error))
+      throw new IntakeRequestError(
+        503,
+        'Your request was saved, but processing is incomplete. Please submit again.'
+      )
+    }
+
+    const data: DemoEmailData = {
+      contactName,
+      businessName,
+      email,
+      phone,
+      industry,
+      employees,
+      message,
+      smsConsent: consent,
+    }
+
+    let calendar: CalendarResult
+    try {
+      calendar = await createDemoCalendarEvent({ ...data, submissionId })
+    } catch (error) {
+      calendar = { status: 'failed', reason: safeErrorMessage(error) }
+    }
+
+    const [ownerNotification, customerConfirmation] = await Promise.all([
+      trackedOwnerEmail(supabase, submissionId, data),
+      trackedCustomerEmail(supabase, submissionId, data),
+    ])
+
+    console.info('[demo] request_complete', {
+      submissionId,
+      duplicate,
+      crm,
+      calendar: calendar.status,
+      ownerNotification: ownerNotification.status,
+      customerConfirmation: customerConfirmation.status,
+    })
+
+    return json({
+      ok: true,
+      submissionId,
+      duplicate,
+      crm,
+      calendar: calendar.status,
+      ownerNotification: ownerNotification.status,
+      customerConfirmation: customerConfirmation.status,
+    })
+  } catch (error) {
+    if (error instanceof IntakeRequestError) {
+      console.warn('[demo] request_rejected', {
+        status: error.status,
+        reason: safeErrorMessage(error),
+      })
+      return json({ error: error.publicMessage }, error.status)
+    }
+
+    console.error('[demo] request_failed —', safeErrorMessage(error))
+    return json({ error: 'Service unavailable. Please try again later.' }, 503)
+  }
 }

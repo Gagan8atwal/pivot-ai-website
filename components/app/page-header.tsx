@@ -4,18 +4,22 @@ export function PageHeader({
   title,
   description,
   actions,
+  action,
 }: {
   title: string
   description?: string
   actions?: React.ReactNode
+  /** Backward-compatible singular alias; `actions` remains the canonical prop. */
+  action?: React.ReactNode
 }) {
+  const renderedActions = actions ?? action
   return (
     <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-navy-900">{title}</h1>
         {description && <p className="mt-1 text-sm text-slate-500">{description}</p>}
       </div>
-      {actions && <div className="flex flex-shrink-0 items-center gap-2">{actions}</div>}
+      {renderedActions && <div className="flex flex-shrink-0 items-center gap-2">{renderedActions}</div>}
     </div>
   )
 }
