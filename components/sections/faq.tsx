@@ -10,52 +10,52 @@ const faqItems = [
   {
     question: 'Will it work with my existing phone number?',
     answer:
-      'Yes. We use Twilio to route calls from your existing number to Pivot AI. Your customers dial the same number they always have — nothing changes on their end. No number porting or changes required.',
+      'Call routing options depend on your current phone provider and approved production configuration. During pilot onboarding, we review the safest forwarding or number setup for your business before activation.',
   },
   {
     question: 'Can callers tell it\'s an AI?',
     answer:
-      "Our AI uses Google's most advanced voice technology, which sounds natural and professional. Most callers assume they're speaking with a human receptionist. The AI identifies itself as your 'virtual assistant' if a caller asks directly.",
+      'Pivot AI uses a natural conversational voice and should be presented truthfully as a virtual assistant. Voice quality can vary by phone connection, caller speech and provider conditions, so pilot testing is completed before launch.',
   },
   {
     question: 'What if the AI gives wrong information about my business?',
     answer:
-      "The AI only answers from the knowledge base you provide during onboarding — your services, hours, pricing, and FAQs. It won't guess or make things up. If a caller asks something not covered in your knowledge base, the AI says it doesn't have that information and offers to have someone from your team follow up. You can update your knowledge base at any time.",
+      'Pivot AI is configured from the business information you review during onboarding. When a question is outside the approved information, the assistant should avoid inventing an answer and offer follow-up. You remain responsible for reviewing business details, prices and policies before activation.',
   },
   {
     question: 'How is Pivot AI different from a traditional answering service?',
     answer:
-      'Traditional answering services use human agents who read from a script and pass messages. Pivot AI is a purpose-built AI that knows your business, answers detailed questions, books appointments directly into your calendar, and sends SMS follow-ups — all automatically, 24/7, at a fraction of the cost. No phone tag, no message relays, no hold music.',
+      'Pivot AI is designed to answer routine questions, capture leads, record appointment requests and support follow-up workflows around the clock. Available integrations and automation depend on the approved pilot configuration and are verified before activation.',
   },
   {
     question: 'I\'m a solo operator with low call volume — is Pivot AI right for me?',
     answer:
-      'Our Starter plan at $49/month is built for solo operators. If you\'re missing even one or two calls a week, the value of a recovered job likely exceeds the monthly subscription. The AI handles calls when you\'re on the job, after hours, or simply unavailable — and the 14-day free trial means you can test it with zero financial risk.',
+      'The Starter plan is intended for solo operators and lower call volume. Request a pilot demo so we can review your missed-call pattern, confirm current availability and determine whether the expected recovered revenue justifies the monthly cost.',
   },
   {
     question: 'What if I want to transfer a caller to a live person?',
     answer:
-      'Pivot AI can be configured to transfer calls to you, a team member, or another number at any point in the conversation — based on intent, urgency, or caller request.',
+      'Transfer behavior can be configured for approved destinations and scenarios. It must be tested with your phone setup because carrier, availability and provider conditions can affect whether a live transfer completes.',
   },
   {
     question: 'What happens after hours?',
     answer:
-      'Your AI receptionist works 24/7 — nights, weekends, and holidays. Every after-hours call is answered, every lead is captured, and every appointment request is logged. You wake up to a full summary of overnight activity.',
+      'When the pilot is configured for after-hours coverage, Pivot AI can answer eligible calls, capture caller details and record requests for review. Exact behavior follows the business hours, fallback rules and workflows approved during onboarding.',
   },
   {
     question: 'Is my customer data secure?',
     answer:
-      'Yes. All data is encrypted in transit and at rest using industry-standard security. We comply with relevant data protection regulations and never sell or share your customer data with third parties.',
+      'Pivot AI uses access controls and encryption-supported services, but production use is approved only after the applicable security, privacy and retention settings are reviewed. Contractual or regulatory commitments are provided only in the governing service terms.',
   },
   {
     question: 'What is your cancellation policy?',
     answer:
-      'Cancel anytime with no penalty or cancellation fee. We operate month-to-month on all plans. Your 14-day free trial requires no credit card — you only enter billing information if you decide to continue.',
+      'Pilot, billing and cancellation terms are confirmed before activation. Requesting a demo does not start a subscription or charge a card. Review the applicable order and service terms before activating a paid plan.',
   },
   {
     question: 'Can I customize what the AI says?',
     answer:
-      'Absolutely. The greeting, tone, fallback phrases, and knowledge base are all customizable. We work with you to make the AI sound exactly like your business — including your pricing, services, and common scenarios.',
+      'The greeting, tone, fallback phrases and approved business knowledge can be configured. Customer-facing prices, policies and other high-risk details should be reviewed and tested before they are used in live calls.',
   },
 ]
 
