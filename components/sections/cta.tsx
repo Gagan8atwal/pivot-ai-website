@@ -3,9 +3,9 @@ import { ArrowRight, Phone, CheckCircle2, Shield, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 const reassurances = [
-  { icon: Shield, text: 'No credit card required' },
-  { icon: Clock, text: '14-day free trial included' },
-  { icon: CheckCircle2, text: 'Cancel anytime — no contract' },
+  { icon: Shield, text: 'Founder-reviewed pilot request' },
+  { icon: Clock, text: 'No automatic account activation' },
+  { icon: CheckCircle2, text: 'Terms confirmed before paid service' },
 ]
 
 export function CTA() {
@@ -33,15 +33,15 @@ export function CTA() {
           </p>
 
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight text-balance">
-            Ready to answer every call?
+            Ready to review your missed-call workflow?
           </h2>
 
           <p className="text-lg sm:text-xl text-slate-300 leading-relaxed mb-4 max-w-xl mx-auto">
-            We are actively onboarding our first cohort of service businesses. Every pilot customer
-            gets direct access to the founding team and hands-on setup.
+            We are onboarding an early cohort of service businesses. Pilot customers receive
+            direct access to the founding team, hands-on configuration and pre-launch testing.
           </p>
 
-          {/* Objection handling */}
+          {/* Pilot boundaries */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-x-8 gap-y-3 mb-10">
             {reassurances.map(({ icon: Icon, text }) => (
               <div key={text} className="flex items-center gap-2 text-sm text-slate-400">
@@ -58,7 +58,7 @@ export function CTA() {
                 size="xl"
                 className="w-full sm:w-auto group text-base font-bold"
               >
-                Get a Free Demo
+                Request a Pilot Demo
                 <ArrowRight
                   className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1"
                   aria-hidden="true"
@@ -71,12 +71,13 @@ export function CTA() {
                 size="xl"
                 className="w-full sm:w-auto text-white border-white/30 hover:bg-white/10 text-base"
               >
-                View Pricing
+                View Pilot Pricing
               </Button>
             </Link>
           </div>
 
           <p className="mt-8 text-sm text-slate-500">
+            Requesting a demo does not create an account, start billing or activate phone service.
             Questions? Email us at{' '}
             <a
               href="mailto:hello@pivotcalls.co"
