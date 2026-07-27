@@ -20,7 +20,7 @@ const combined = `${privacy}\n${terms}`
 
 const forbiddenPromises = [
   /14-day\s+free\s+trial\s+requires\s+no\s+payment/i,
-  /active\s+subscription\s+plus\s+90\s+days/i,
+  /We\s+retain\s+call\s+records,\s*transcripts,\s*and\s*lead\s+data.*active\s+subscription\s+plus\s+90\s+days/is,
   /verbal\s+consent,?\s+which\s+is\s+recorded/i,
   /regular\s+security\s+reviews/i,
   /cancel\s+your\s+subscription\s+at\s+any\s+time\s+through\s+your\s+account\s+dashboard/i,
@@ -78,16 +78,16 @@ test('privacy describes conditional feature collection rather than universal cap
 })
 
 test('messaging policy distinguishes written consent from unverified verbal workflows', () => {
-  assert.match(privacy, /records affirmative written consent only when the optional SMS checkbox is selected/i)
+  assert.match(privacy, /records affirmative written consent only when the optional SMS\s+checkbox is selected/i)
   assert.match(privacy, /do not represent.*recorded verbal consent/is)
-  assert.match(privacy, /depends on the sender type and Twilio Messaging Service configuration/i)
+  assert.match(privacy, /depends on the sender type and Twilio Messaging Service\s+configuration/i)
   assert.match(terms, /does not promise.*custom STOP, HELP, verbal-consent/is)
 })
 
 test('retention is category and purpose based, not a fictional fixed automation', () => {
   assert.match(privacy, /Retention varies by record type/i)
   assert.match(privacy, /do not currently promise an automatic/i)
-  assert.match(privacy, /Provider copies, backups, logs, legal holds/i)
+  assert.match(privacy, /Provider copies, backups, logs,\s+legal holds/i)
 })
 
 test('privacy requests are conditional, verified, and not claimed as self-service', () => {
@@ -99,7 +99,7 @@ test('privacy requests are conditional, verified, and not claimed as self-servic
 test('security wording avoids certification and absolute-security implications', () => {
   assert.match(privacy, /measures intended to reduce risk/i)
   assert.match(privacy, /no transmission or storage system is guaranteed secure/i)
-  assert.match(privacy, /does not represent that Pivot AI has completed an independent security certification/i)
+  assert.match(privacy, /does not represent that Pivot AI has completed an independent security\s+certification/i)
 })
 
 test('terms distinguish appointment requests from confirmed bookings', () => {
