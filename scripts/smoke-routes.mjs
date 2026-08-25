@@ -44,6 +44,7 @@ const APP_ROUTES = [
   ['/dashboard', 'app/(app)/dashboard/page.tsx'],
   ['/onboarding', 'app/(app)/onboarding/page.tsx'],
   ['/assistant', 'app/(app)/assistant/page.tsx'],
+  ['/support', 'app/(app)/support/page.tsx'],
   ['/owner', 'app/(app)/owner/page.tsx'],
   ['/crm', 'app/(app)/crm/page.tsx'],
   ['/appointments', 'app/(app)/appointments/page.tsx'],
@@ -66,6 +67,7 @@ const LIB = [
   ['app shell', 'components/app/app-shell.tsx'],
   ['auth provider', 'components/app/auth-provider.tsx'],
   ['IVR settings editor', 'components/app/ivr-settings.tsx'],
+  ['customer support console', 'components/app/support/support-console.tsx'],
 ]
 
 let failures = 0
