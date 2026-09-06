@@ -1,0 +1,89 @@
+name: AL OS Windows Candidate Gate
+
+on:
+  push:
+    branches:
+      - 'ci/alos-windows-support-pr22-20260906'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: alos-windows-${{ github.repository }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    if: github.actor == github.repository_owner
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 25
+    env:
+      TARGET_SHA: ${{ github.sha }}
+      NEXT_PUBLIC_API_BASE: https://example.invalid
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: test-anon-key
+      SUPABASE_URL: https://example.supabase.co
+      SUPABASE_SERVICE_ROLE_KEY: test-service-role-key
+      DASHBOARD_OWNER_ID: 00000000-0000-4000-8000-000000000000
+      OWNER_EMAIL: owner@example.com
+      FROM_EMAIL: Pivot AI <hello@example.com>
+      RESEND_API_KEY: re_test_key
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ env.TARGET_SHA }}
+          fetch-depth: 1
+          persist-credentials: false
+          clean: true
+
+      - name: Prove runner and exact revision
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:RUNNER_OS -ne 'Windows') {
+            throw "Expected Windows runner, got '$env:RUNNER_OS'."
+          }
+          if ($env:RUNNER_ARCH -ne 'X64') {
+            throw "Expected X64 runner, got '$env:RUNNER_ARCH'."
+          }
+          $actual = (& git rev-parse HEAD).Trim()
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Unable to resolve checked-out revision.'
+          }
+          if ($actual -ne $env:TARGET_SHA) {
+            throw "Revision mismatch: expected $env:TARGET_SHA, got $actual."
+          }
+          "runner=$env:RUNNER_NAME os=$env:RUNNER_OS arch=$env:RUNNER_ARCH"
+          "target=$env:TARGET_SHA actual=$actual"
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Record toolchain
+        shell: pwsh
+        run: |
+          node --version
+          if ($LASTEXITCODE -ne 0) { throw 'node --version failed.' }
+          npm --version
+          if ($LASTEXITCODE -ne 0) { throw 'npm --version failed.' }
+
+      - name: Install locked dependencies
+        shell: pwsh
+        run: npm ci
+
+      - name: Run complete repository regression
+        shell: pwsh
+        run: npm test
+      - name: Lint
+        shell: pwsh
+        run: npm run lint
+
+      - name: Production build
+        shell: pwsh
+        run: npm run build
