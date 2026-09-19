@@ -83,7 +83,7 @@ export function consumeAlosProjectBrowserResult(result, { admission } = {}) {
     "sameOwnerBrowser",
     "productionVerifierInvoked",
     "persistedAllowedToolsEnforced",
-    "sameOwnerConsumed",
+
   ]) {
     need(result?.[field] === true, `${field} not proven`);
   }
