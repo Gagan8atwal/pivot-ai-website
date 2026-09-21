@@ -87,7 +87,6 @@ const jsonLd = {
   provider: {
     '@type': 'Organization',
     name: 'Pivot AI',
-    legalName: 'AL Logistics LLC',
     url: siteUrl,
     address: {
       '@type': 'PostalAddress',
