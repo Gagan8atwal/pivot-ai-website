@@ -34,3 +34,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .env*
+
+
+# internal ALOS / audit artifacts
+.alos/
+GROUND_TRUTH.md
