@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 }
 
 export default function TermsPage() {
-  const lastUpdated = 'June 27, 2026'
+  const lastUpdated = 'September 21, 2026'
 
   return (
     <>
@@ -25,8 +25,7 @@ export default function TermsPage() {
             <section>
               <h2 className="text-2xl font-bold text-navy-900 mb-4">1. Acceptance of Terms</h2>
               <p>
-                By accessing or using Pivot AI (&ldquo;Service&rdquo;), operated by AL Logistics LLC
-                (&ldquo;Company,&rdquo; &ldquo;we,&rdquo; &ldquo;us&rdquo;), you agree to be bound by these Terms of Service.
+                By accessing or using Pivot AI (&ldquo;Service&rdquo;), you agree to be bound by these Terms of Service. References to &ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo; mean the operator of the Pivot AI service.
                 If you do not agree to all terms, you may not use the Service.
               </p>
             </section>
@@ -122,7 +121,7 @@ export default function TermsPage() {
               <h2 className="text-2xl font-bold text-navy-900 mb-4">8. Intellectual Property</h2>
               <p>
                 The Service, including its software, AI models, design, and documentation,
-                is owned by AL Logistics LLC and protected by intellectual property laws.
+                and related materials are proprietary to Pivot AI and its owner/operator and are protected by intellectual property laws.
                 You receive a limited, non-exclusive, non-transferable license to use the
                 Service as described herein.
               </p>
@@ -158,7 +157,7 @@ export default function TermsPage() {
             <section>
               <h2 className="text-2xl font-bold text-navy-900 mb-4">11. Limitation of Liability</h2>
               <p>
-                TO THE MAXIMUM EXTENT PERMITTED BY LAW, AL LOGISTICS LLC SHALL NOT BE
+                TO THE MAXIMUM EXTENT PERMITTED BY LAW, PIVOT AI AND ITS OWNER/OPERATOR SHALL NOT BE
                 LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE
                 DAMAGES, INCLUDING LOST PROFITS, ARISING FROM YOUR USE OF THE SERVICE.
                 OUR TOTAL LIABILITY SHALL NOT EXCEED THE AMOUNTS PAID BY YOU IN THE
@@ -169,8 +168,7 @@ export default function TermsPage() {
             <section>
               <h2 className="text-2xl font-bold text-navy-900 mb-4">12. Indemnification</h2>
               <p>
-                You agree to indemnify and hold harmless AL Logistics LLC, its officers,
-                directors, employees, and agents from any claims, damages, or expenses
+                You agree to indemnify and hold harmless Pivot AI and its owner/operator, employees, and agents from any claims, damages, or expenses
                 arising from your use of the Service, your violation of these Terms, or
                 your violation of any applicable law or third-party rights.
               </p>
@@ -198,7 +196,7 @@ export default function TermsPage() {
             <section>
               <h2 className="text-2xl font-bold text-navy-900 mb-4">15. Contact</h2>
               <address className="not-italic">
-                <strong>Pivot AI · AL Logistics LLC</strong><br />
+                <strong>Pivot AI</strong><br />
                 Fresno, California<br />
                 <a href="mailto:hello@pivotcalls.co" className="text-amber-600 hover:underline">
                   hello@pivotcalls.co
