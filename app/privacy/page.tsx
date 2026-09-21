@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 }
 
 export default function PrivacyPage() {
-  const lastUpdated = 'June 27, 2026'
+  const lastUpdated = 'September 21, 2026'
 
   return (
     <>
@@ -26,8 +26,7 @@ export default function PrivacyPage() {
               <section>
                 <h2 className="text-2xl font-bold text-navy-900 mb-4">1. Introduction</h2>
                 <p>
-                  Pivot AI (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;), operated by AL
-                  Logistics LLC, is committed to protecting the privacy of our customers,
+                  Pivot AI (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) is committed to protecting the privacy of our customers,
                   website visitors, and call participants. This Privacy Policy explains how we
                   collect, use, disclose, and safeguard your information when you use our
                   website at{' '}
@@ -215,7 +214,7 @@ export default function PrivacyPage() {
                   For questions about this Privacy Policy or your data, contact us at:
                 </p>
                 <address className="mt-3 not-italic">
-                  <strong>Pivot AI · AL Logistics LLC</strong><br />
+                  <strong>Pivot AI</strong><br />
                   Fresno, California<br />
                   <a href="mailto:hello@pivotcalls.co" className="text-amber-600 hover:underline">
                     hello@pivotcalls.co
