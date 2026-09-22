@@ -125,12 +125,13 @@ export function QuickSetup() {
 
   const blockers = result?.readiness?.blockers || []
   const warnings = result?.readiness?.warnings || []
+  const phoneReady = result?.integrations?.phone === true
 
   return (
     <>
       <PageHeader
         title="Set up your AI receptionist"
-        description="Give us the essentials once. Pivot builds the receptionist and checks whether it can go live."
+        description="Give us the essentials once. Pivot builds the receptionist and checks whether setup can activate."
         actions={
           <Button type="button" variant="outline" size="sm" onClick={() => setAdvanced(true)}>
             <SlidersHorizontal className="mr-2 h-4 w-4" aria-hidden="true" />
@@ -155,7 +156,7 @@ export function QuickSetup() {
         <Card>
           <CardContent className="flex items-start gap-3 p-4">
             <CheckCircle2 className="mt-0.5 h-5 w-5 text-slate-600" aria-hidden="true" />
-            <div><p className="text-sm font-semibold">Truthful activation</p><p className="mt-1 text-xs text-slate-500">It goes live only when the backend readiness gate actually passes.</p></div>
+            <div><p className="text-sm font-semibold">Truthful activation</p><p className="mt-1 text-xs text-slate-500">Setup activates only when backend readiness passes. Calling readiness is shown separately.</p></div>
           </CardContent>
         </Card>
       </div>
@@ -250,15 +251,18 @@ export function QuickSetup() {
         )}
 
         {result && (
-          <Card className={result.activated ? 'border-emerald-200' : 'border-amber-200'}>
+          <Card className={result.activated && phoneReady ? 'border-emerald-200' : 'border-amber-200'}>
             <CardHeader>
               <div className="flex flex-wrap items-center gap-2">
-                <CardTitle>{result.activated ? 'Receptionist activated' : 'Setup saved'}</CardTitle>
+                <CardTitle>{result.activated ? 'Setup activated' : 'Setup saved'}</CardTitle>
                 <Badge variant="secondary">{result.completedSteps.length}/7 readiness checks</Badge>
+                {result.activated && <Badge variant="secondary">{phoneReady ? 'Phone ready' : 'Phone not ready'}</Badge>}
               </div>
               <CardDescription>
                 {result.activated
-                  ? 'The backend activation gate passed. Your configuration is now the live tenant configuration.'
+                  ? phoneReady
+                    ? 'Setup activation passed and the phone integration reports ready. Messaging and carrier approval remain separate statuses.'
+                    : 'Setup activation passed. Phone service is not considered live until the phone integration reports ready.'
                   : 'Your receptionist is configured. Only the items below still prevent activation.'}
               </CardDescription>
             </CardHeader>
@@ -273,7 +277,7 @@ export function QuickSetup() {
               {warnings.length > 0 && (
                 <div className="text-sm text-slate-600">{warnings.map((item) => <p key={`${item.field}-${item.message}`}>• {item.message}</p>)}</div>
               )}
-              {!result.activated && <Button type="button" variant="outline" onClick={() => setAdvanced(true)}>Finish remaining setup</Button>}
+              {(!result.activated || !phoneReady) && <Button type="button" variant="outline" onClick={() => setAdvanced(true)}>Review remaining setup</Button>}
             </CardContent>
           </Card>
         )}
