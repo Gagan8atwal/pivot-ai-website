@@ -68,8 +68,10 @@ test('phone readiness and messaging/carrier approval stay separate from setup ac
 })
 
 test('Advanced fallback itself does not silently submit the preserved Quick draft', () => {
-  const advancedBlock = source.slice(source.indexOf('if (advanced) {'), source.indexOf('if (!isApiConfigured)'))
-  assert.ok(advancedBlock.length > 0, 'Advanced fallback block not found')
+  const advancedStart = source.indexOf('if (advanced) {')
+  const advancedEnd = source.indexOf('if (!isApiConfigured) {', advancedStart)
+  const advancedBlock = source.slice(advancedStart, advancedEnd)
+  assert.ok(advancedStart >= 0 && advancedEnd > advancedStart, 'Advanced fallback block not found')
   assert.doesNotMatch(advancedBlock, /apiFetch|method:\s*'POST'|activate:\s*true/)
   assert.match(advancedBlock, /<OnboardingWizard \/>/)
 })
