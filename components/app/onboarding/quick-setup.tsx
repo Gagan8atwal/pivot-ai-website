@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge'
 import { PageHeader } from '@/components/app/page-header'
 import { NotConfiguredState } from '@/components/app/states'
 import { useAuth } from '@/components/app/auth-provider'
-import { apiFetch, can, errorMessage, isApiConfigured, type ReadinessIssue } from '@/lib/api'
+import { api, apiFetch, can, errorMessage, isApiConfigured, type ReadinessIssue } from '@/lib/api'
+import { unwrapSettings } from '@/lib/onboarding'
 import { OnboardingWizard } from '@/components/app/onboarding/onboarding-wizard'
 
 type QuickResponse = {
@@ -43,6 +44,8 @@ type Form = {
   bookingEnabled: boolean
 }
 
+type HydrationState = 'loading' | 'ready' | 'error'
+
 function defaultTimezone() {
   if (typeof Intl === 'undefined') return 'America/Los_Angeles'
   return Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Los_Angeles'
@@ -56,6 +59,33 @@ function splitLines(value: string) {
   return [...new Set(value.split(/[\n,]/).map((v) => v.trim()).filter(Boolean))]
 }
 
+function text(value: unknown) {
+  return typeof value === 'string' ? value.trim() : ''
+}
+
+function textList(value: unknown) {
+  if (Array.isArray(value)) return value.map((v) => text(v)).filter(Boolean)
+  if (typeof value === 'string') return splitLines(value)
+  return []
+}
+
+function hydrateQuickForm(raw: unknown, fallback: Form): Form {
+  const settings = unwrapSettings(raw)
+  return {
+    businessName: text(settings.display_name) || text(settings.business_name),
+    businessProfile: text(settings.business_profile),
+    services: textList(settings.services).join('\n'),
+    hours: text(settings.hours),
+    timezone: text(settings.timezone) || fallback.timezone,
+    ownerPhone: text(settings.owner_phone),
+    ownerEmail: text(settings.owner_email),
+    agentName: text(settings.agent_name) || fallback.agentName,
+    tone: text(settings.tone) || fallback.tone,
+    pronunciationHints: textList(settings.pronunciation_hints).join('\n'),
+    bookingEnabled: settings.booking_enabled === true,
+  }
+}
+
 export function QuickSetup() {
   const { me } = useAuth()
   const canEdit = can.admin(me?.role)
@@ -63,6 +93,9 @@ export function QuickSetup() {
   const [busy, setBusy] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [result, setResult] = React.useState<QuickResponse | null>(null)
+  const [hydration, setHydration] = React.useState<HydrationState>(isApiConfigured ? 'loading' : 'ready')
+  const [hydrationError, setHydrationError] = React.useState<string | null>(null)
+  const dirtyRef = React.useRef(false)
   const [form, setForm] = React.useState<Form>(() => ({
     businessName: '',
     businessProfile: '',
@@ -76,6 +109,24 @@ export function QuickSetup() {
     pronunciationHints: '',
     bookingEnabled: false,
   }))
+
+  React.useEffect(() => {
+    if (!isApiConfigured) return
+    let cancelled = false
+
+    api.settings.get().then((raw) => {
+      if (cancelled) return
+      setForm((current) => dirtyRef.current ? current : hydrateQuickForm(raw, current))
+      setHydration('ready')
+      setHydrationError(null)
+    }).catch((err) => {
+      if (cancelled) return
+      setHydration('error')
+      setHydrationError(errorMessage(err))
+    })
+
+    return () => { cancelled = true }
+  }, [])
 
   if (advanced) {
     const preserved = [
@@ -133,12 +184,17 @@ export function QuickSetup() {
     )
   }
 
-  const patch = (value: Partial<Form>) => setForm((current) => ({ ...current, ...value }))
-  const valid = Boolean(form.businessName.trim() && form.services.trim() && form.hours.trim() && form.timezone.trim())
+  const patch = (value: Partial<Form>) => {
+    dirtyRef.current = true
+    setForm((current) => ({ ...current, ...value }))
+  }
+  const hydrationReady = hydration === 'ready'
+  const formLocked = busy || !hydrationReady
+  const valid = hydrationReady && Boolean(form.businessName.trim() && form.services.trim() && form.hours.trim() && form.timezone.trim())
 
   async function submit(event: React.FormEvent) {
     event.preventDefault()
-    if (!canEdit || busy || !valid) return
+    if (!canEdit || busy || !hydrationReady || !valid) return
     setBusy(true)
     setError(null)
     setResult(null)
@@ -212,6 +268,23 @@ export function QuickSetup() {
         </div>
       )}
 
+      {hydration === 'loading' && (
+        <div className="mb-4 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+          Loading your saved setup before edits are enabled…
+        </div>
+      )}
+
+      {hydration === 'error' && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            <span>Pivot could not load your saved setup{hydrationError ? `: ${hydrationError}` : ''}. Quick Setup is locked so existing settings cannot be overwritten by blank or default values.</span>
+          </div>
+          <Button type="button" variant="link" className="mt-2 h-auto p-0 text-red-700" onClick={() => setAdvanced(true)}>Open advanced setup</Button>
+        </div>
+      )}
+
       <form onSubmit={submit} className="space-y-5">
         <Card>
           <CardHeader>
@@ -221,23 +294,23 @@ export function QuickSetup() {
           <CardContent className="grid gap-4 md:grid-cols-2">
             <div>
               <label className={LABEL} htmlFor="businessName">Business name *</label>
-              <input id="businessName" className={FIELD} disabled={!canEdit || busy} value={form.businessName} onChange={(e) => patch({ businessName: e.target.value })} placeholder="Northside Dental" autoComplete="organization" />
+              <input id="businessName" className={FIELD} disabled={!canEdit || formLocked} value={form.businessName} onChange={(e) => patch({ businessName: e.target.value })} placeholder="Northside Dental" autoComplete="organization" />
             </div>
             <div>
               <label className={LABEL} htmlFor="timezone">Timezone *</label>
-              <input id="timezone" className={FIELD} disabled={!canEdit || busy} value={form.timezone} onChange={(e) => patch({ timezone: e.target.value })} placeholder="America/Los_Angeles" />
+              <input id="timezone" className={FIELD} disabled={!canEdit || formLocked} value={form.timezone} onChange={(e) => patch({ timezone: e.target.value })} placeholder="America/Los_Angeles" />
             </div>
             <div className="md:col-span-2">
               <label className={LABEL} htmlFor="profile">What does your business do?</label>
-              <textarea id="profile" rows={2} className={FIELD} disabled={!canEdit || busy} value={form.businessProfile} onChange={(e) => patch({ businessProfile: e.target.value })} placeholder="Family dental practice serving Fresno and nearby communities." />
+              <textarea id="profile" rows={2} className={FIELD} disabled={!canEdit || formLocked} value={form.businessProfile} onChange={(e) => patch({ businessProfile: e.target.value })} placeholder="Family dental practice serving Fresno and nearby communities." />
             </div>
             <div className="md:col-span-2">
               <label className={LABEL} htmlFor="services">Services * <span className="font-normal text-slate-500">(one per line)</span></label>
-              <textarea id="services" rows={4} className={FIELD} disabled={!canEdit || busy} value={form.services} onChange={(e) => patch({ services: e.target.value })} placeholder={'Cleanings\nEmergency dental visits\nNew patient exams'} />
+              <textarea id="services" rows={4} className={FIELD} disabled={!canEdit || formLocked} value={form.services} onChange={(e) => patch({ services: e.target.value })} placeholder={'Cleanings\nEmergency dental visits\nNew patient exams'} />
             </div>
             <div className="md:col-span-2">
               <label className={LABEL} htmlFor="hours">Business hours *</label>
-              <input id="hours" className={FIELD} disabled={!canEdit || busy} value={form.hours} onChange={(e) => patch({ hours: e.target.value })} placeholder="Monday to Friday, 9 AM to 5 PM. Closed weekends." />
+              <input id="hours" className={FIELD} disabled={!canEdit || formLocked} value={form.hours} onChange={(e) => patch({ hours: e.target.value })} placeholder="Monday to Friday, 9 AM to 5 PM. Closed weekends." />
             </div>
           </CardContent>
         </Card>
@@ -250,14 +323,14 @@ export function QuickSetup() {
           <CardContent className="grid gap-4 md:grid-cols-2">
             <div>
               <label className={LABEL} htmlFor="ownerPhone">Owner / forwarding phone</label>
-              <input id="ownerPhone" className={FIELD} disabled={!canEdit || busy} value={form.ownerPhone} onChange={(e) => patch({ ownerPhone: e.target.value })} placeholder="+1 559 555 0123" inputMode="tel" autoComplete="tel" />
+              <input id="ownerPhone" className={FIELD} disabled={!canEdit || formLocked} value={form.ownerPhone} onChange={(e) => patch({ ownerPhone: e.target.value })} placeholder="+1 559 555 0123" inputMode="tel" autoComplete="tel" />
             </div>
             <div>
               <label className={LABEL} htmlFor="ownerEmail">Lead notification email</label>
-              <input id="ownerEmail" className={FIELD} disabled={!canEdit || busy} value={form.ownerEmail} onChange={(e) => patch({ ownerEmail: e.target.value })} placeholder="owner@example.com" type="email" autoComplete="email" />
+              <input id="ownerEmail" className={FIELD} disabled={!canEdit || formLocked} value={form.ownerEmail} onChange={(e) => patch({ ownerEmail: e.target.value })} placeholder="owner@example.com" type="email" autoComplete="email" />
             </div>
             <label className="md:col-span-2 flex items-start gap-3 rounded-lg border border-slate-200 p-3">
-              <input type="checkbox" className="mt-1 h-4 w-4" disabled={!canEdit || busy} checked={form.bookingEnabled} onChange={(e) => patch({ bookingEnabled: e.target.checked })} />
+              <input type="checkbox" className="mt-1 h-4 w-4" disabled={!canEdit || formLocked} checked={form.bookingEnabled} onChange={(e) => patch({ bookingEnabled: e.target.checked })} />
               <span>
                 <span className="block text-sm font-medium text-slate-800">Book appointments</span>
                 <span className="mt-0.5 block text-xs text-slate-500">Enable only if you want calendar-backed booking. Quick Setup will tell you if a calendar connection is still required.</span>
@@ -274,15 +347,15 @@ export function QuickSetup() {
           <CardContent className="grid gap-4 md:grid-cols-2">
             <div>
               <label className={LABEL} htmlFor="agentName">Receptionist name</label>
-              <input id="agentName" className={FIELD} disabled={!canEdit || busy} value={form.agentName} onChange={(e) => patch({ agentName: e.target.value })} placeholder="Alex" />
+              <input id="agentName" className={FIELD} disabled={!canEdit || formLocked} value={form.agentName} onChange={(e) => patch({ agentName: e.target.value })} placeholder="Alex" />
             </div>
             <div>
               <label className={LABEL} htmlFor="tone">Conversation style</label>
-              <input id="tone" className={FIELD} disabled={!canEdit || busy} value={form.tone} onChange={(e) => patch({ tone: e.target.value })} />
+              <input id="tone" className={FIELD} disabled={!canEdit || formLocked} value={form.tone} onChange={(e) => patch({ tone: e.target.value })} />
             </div>
             <div className="md:col-span-2">
               <label className={LABEL} htmlFor="hints">Important names and pronunciations</label>
-              <textarea id="hints" rows={3} className={FIELD} disabled={!canEdit || busy} value={form.pronunciationHints} onChange={(e) => patch({ pronunciationHints: e.target.value })} placeholder={'Dr. Kuldeep Kaur\nCrayox\nSan Joaquin'} />
+              <textarea id="hints" rows={3} className={FIELD} disabled={!canEdit || formLocked} value={form.pronunciationHints} onChange={(e) => patch({ pronunciationHints: e.target.value })} placeholder={'Dr. Kuldeep Kaur\nCrayox\nSan Joaquin'} />
               <p className={HELP}>Add staff names, brands, locations, or terms that speech recognition commonly gets wrong.</p>
             </div>
           </CardContent>
@@ -329,7 +402,7 @@ export function QuickSetup() {
 
         <div className="flex flex-wrap items-center justify-between gap-3 pb-8">
           <p className="text-xs text-slate-500">Required fields are marked *. You can change everything later.</p>
-          <Button type="submit" disabled={!canEdit || busy || !valid}>
+          <Button type="submit" disabled={!canEdit || busy || !hydrationReady || !valid}>
             {busy ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />Building receptionist…</> : <><Sparkles className="mr-2 h-4 w-4" aria-hidden="true" />Build my receptionist</>}
           </Button>
         </div>
