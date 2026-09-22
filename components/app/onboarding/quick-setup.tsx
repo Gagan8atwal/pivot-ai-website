@@ -77,7 +77,52 @@ export function QuickSetup() {
     bookingEnabled: false,
   }))
 
-  if (advanced) return <OnboardingWizard />
+  if (advanced) {
+    const preserved = [
+      ['Business name', form.businessName],
+      ['Business profile', form.businessProfile],
+      ['Services', form.services],
+      ['Business hours', form.hours],
+      ['Timezone', form.timezone],
+      ['Owner / forwarding phone', form.ownerPhone],
+      ['Lead notification email', form.ownerEmail],
+      ['Receptionist name', form.agentName],
+      ['Conversation style', form.tone],
+      ['Pronunciation hints', form.pronunciationHints],
+      ['Booking', form.bookingEnabled ? 'Enabled' : 'Disabled'],
+    ].filter(([, value]) => String(value).trim().length > 0)
+
+    return (
+      <>
+        <Card className="mb-5 border-slate-200 bg-slate-50/70">
+          <CardHeader className="pb-3">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <CardTitle>Quick Setup draft preserved</CardTitle>
+                <CardDescription className="mt-1">
+                  Your Quick Setup entries are kept while you use Advanced setup. Nothing below silently replaces or submits them.
+                </CardDescription>
+              </div>
+              <Button type="button" variant="outline" size="sm" onClick={() => setAdvanced(false)}>
+                Return to Quick Setup
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <dl className="grid gap-3 md:grid-cols-2">
+              {preserved.map(([label, value]) => (
+                <div key={label} className="rounded-lg border border-slate-200 bg-white p-3">
+                  <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</dt>
+                  <dd className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{value}</dd>
+                </div>
+              ))}
+            </dl>
+          </CardContent>
+        </Card>
+        <OnboardingWizard />
+      </>
+    )
+  }
 
   if (!isApiConfigured) {
     return (
