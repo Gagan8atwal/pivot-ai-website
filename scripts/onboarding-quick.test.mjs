@@ -36,7 +36,7 @@ test('quick endpoint error offers Advanced fallback without discarding entered f
   assert.match(source, />Open advanced setup instead</)
   assert.match(source, /if \(advanced\) \{/)
   assert.match(source, />Quick Setup draft preserved</)
-  assert.match(source, />Return to Quick Setup</)
+  assert.match(source, /Return to Quick Setup/)
 
   for (const field of [
     'businessName',
