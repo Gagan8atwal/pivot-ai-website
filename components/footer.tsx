@@ -147,7 +147,7 @@ export function Footer() {
       <div className="border-t border-white/10">
         <div className="container mx-auto px-4 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-slate-500">
-            © {new Date().getFullYear()} Pivot AI · AL Logistics LLC · All rights reserved.
+            © {new Date().getFullYear()} Pivot AI. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
             <Link

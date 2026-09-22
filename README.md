@@ -180,4 +180,4 @@ pivot-ai-website/
 
 ---
 
-© 2026 Pivot AI · AL Logistics LLC
+© 2026 Pivot AI
