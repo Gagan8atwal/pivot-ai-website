@@ -23,6 +23,7 @@ import {
   Rocket,
   ShieldCheck,
   Sparkles,
+  LifeBuoy,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -47,6 +48,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/onboarding', label: 'Setup', icon: Rocket },
       { href: '/assistant', label: 'Assistant', icon: Sparkles },
+      { href: '/support', label: 'Customer Help', icon: LifeBuoy },
       { href: '/owner', label: 'Owner Command Center', icon: Crown, minRank: 4 },
     ],
   },
