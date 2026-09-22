@@ -74,6 +74,25 @@ test('Advanced fallback itself does not silently submit the preserved Quick draf
   assert.match(advancedBlock, /<OnboardingWizard \/>/)
 })
 
+test('reopening Quick Setup hydrates persisted settings before the form can be edited or submitted', () => {
+  assert.match(source, /api\.settings\.get\(\)/)
+  assert.match(source, /hydrateQuickForm\(raw, current\)/)
+  assert.match(source, /businessName: text\(settings\.display_name\) \|\| text\(settings\.business_name\)/)
+  assert.match(source, /services: textList\(settings\.services\)\.join\('\\n'\)/)
+  assert.match(source, /bookingEnabled: settings\.booking_enabled === true/)
+  assert.match(source, /const hydrationReady = hydration === 'ready'/)
+  assert.match(source, /const formLocked = busy \|\| !hydrationReady/)
+  assert.match(source, /if \(!canEdit \|\| busy \|\| !hydrationReady \|\| !valid\) return/)
+  assert.match(source, /disabled=\{!canEdit \|\| busy \|\| !hydrationReady \|\| !valid\}/)
+})
+
+test('saved-settings read failure fails closed instead of allowing defaults to overwrite persisted configuration', () => {
+  assert.match(source, /setHydration\('error'\)/)
+  assert.match(source, /Quick Setup is locked so existing settings cannot be overwritten by blank or default values\./)
+  assert.match(source, /hydration === 'error'/)
+  assert.match(source, />Open advanced setup</)
+})
+
 if (failures > 0) {
   console.error(`\n${failures} of ${count} Quick Setup tests failed.\n`)
   process.exit(1)
