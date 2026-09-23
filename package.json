@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node scripts/smoke-routes.mjs && node scripts/url.test.mjs && node scripts/parse.test.mjs && node scripts/settings-ivr.test.mjs && node scripts/csp.test.mjs && node scripts/pricing.test.mjs && node scripts/onboarding-quick.test.mjs"
+    "test": "node scripts/smoke-routes.mjs && node scripts/url.test.mjs && node scripts/parse.test.mjs && node scripts/settings-ivr.test.mjs && node scripts/csp.test.mjs && node scripts/pricing.test.mjs && node scripts/onboarding-quick.test.mjs && node scripts/dashboard-onboarding-truth.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.0",
@@ -20,7 +20,7 @@
     "react-dom": "19.0.0",
     "resend": "^6.16.0",
     "tailwind-merge": "^2.6.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
