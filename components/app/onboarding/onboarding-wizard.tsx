@@ -302,7 +302,7 @@ export function OnboardingWizard() {
       setActivatedMessage(
         res?.alreadyActive
           ? 'This business was already active — nothing changed.'
-          : 'Activated. Your AI receptionist is answering calls now.'
+          : 'Setup activated. Calling is not considered live until the phone integration reports ready.'
       )
       await refresh()
     } catch (err) {
@@ -378,7 +378,7 @@ export function OnboardingWizard() {
         actions={
           activatedAt ? (
             <Badge variant="secondary" className="gap-1.5">
-              <CheckCircle2 className="h-3 w-3" aria-hidden="true" /> Live
+              <CheckCircle2 className="h-3 w-3" aria-hidden="true" /> Activated
             </Badge>
           ) : undefined
         }

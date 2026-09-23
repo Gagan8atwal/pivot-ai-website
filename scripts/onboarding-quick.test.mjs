@@ -1,0 +1,103 @@
+#!/usr/bin/env node
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { dirname, join, resolve } from 'node:path'
+
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const source = readFileSync(join(root, 'components/app/onboarding/quick-setup.tsx'), 'utf8')
+
+let failures = 0
+let count = 0
+function test(name, fn) {
+  count++
+  try {
+    fn()
+    console.log(`  ✓ ${name}`)
+  } catch (err) {
+    failures++
+    console.error(`  ✗ ${name}`)
+    console.error(`    ${err.message}`)
+  }
+}
+
+console.log('\nQuick Setup release regressions')
+
+test('backend-not-ready remains visibly blocked instead of claiming activation', () => {
+  assert.match(source, /const blockers = result\?\.readiness\?\.blockers \|\| \[\]/)
+  assert.match(source, /blockers\.length > 0/)
+  assert.match(source, />Still required</)
+  assert.match(source, /result\.activated \? 'Setup activated' : 'Setup saved'/)
+  assert.match(source, /Only the items below still prevent activation\./)
+})
+
+test('quick endpoint error offers Advanced fallback without discarding entered fields', () => {
+  assert.match(source, /catch \(err\) \{\s*setError\(errorMessage\(err\)\)/)
+  assert.match(source, />Open advanced setup instead</)
+  assert.match(source, /if \(advanced\) \{/)
+  assert.match(source, />Quick Setup draft preserved</)
+  assert.match(source, /Return to Quick Setup/)
+
+  for (const field of [
+    'businessName',
+    'businessProfile',
+    'services',
+    'hours',
+    'timezone',
+    'ownerPhone',
+    'ownerEmail',
+    'agentName',
+    'tone',
+    'pronunciationHints',
+    'bookingEnabled',
+  ]) {
+    assert.match(source, new RegExp(`form\\.${field}`), `${field} is not preserved in Advanced fallback`)
+  }
+})
+
+test('activation is requested once through one primary submit CTA', () => {
+  assert.equal((source.match(/activate: true/g) ?? []).length, 1, 'activate=true must have one request site')
+  assert.equal((source.match(/type="submit"/g) ?? []).length, 1, 'Quick Setup must expose one submit CTA')
+  assert.equal((source.match(/Build my receptionist/g) ?? []).length, 1, 'primary activation CTA must be singular')
+})
+
+test('phone readiness and messaging/carrier approval stay separate from setup activation', () => {
+  assert.match(source, /const phoneReady = result\?\.integrations\?\.phone === true/)
+  assert.match(source, /Phone service is not considered live until the phone integration reports ready\./)
+  assert.match(source, /Messaging and carrier approval remain separate statuses\./)
+})
+
+test('Advanced fallback itself does not silently submit the preserved Quick draft', () => {
+  const advancedStart = source.indexOf('if (advanced) {')
+  const advancedEnd = source.indexOf('if (!isApiConfigured) {', advancedStart)
+  const advancedBlock = source.slice(advancedStart, advancedEnd)
+  assert.ok(advancedStart >= 0 && advancedEnd > advancedStart, 'Advanced fallback block not found')
+  assert.doesNotMatch(advancedBlock, /apiFetch|method:\s*'POST'|activate:\s*true/)
+  assert.match(advancedBlock, /<OnboardingWizard \/>/)
+})
+
+test('reopening Quick Setup hydrates persisted settings before the form can be edited or submitted', () => {
+  assert.match(source, /api\.settings\.get\(\)/)
+  assert.match(source, /hydrateQuickForm\(raw, current\)/)
+  assert.match(source, /businessName: text\(settings\.display_name\) \|\| text\(settings\.business_name\)/)
+  assert.match(source, /services: textList\(settings\.services\)\.join\('\\n'\)/)
+  assert.match(source, /bookingEnabled: settings\.booking_enabled === true/)
+  assert.match(source, /const hydrationReady = hydration === 'ready'/)
+  assert.match(source, /const formLocked = busy \|\| !hydrationReady/)
+  assert.match(source, /if \(!canEdit \|\| busy \|\| !hydrationReady \|\| !valid\) return/)
+  assert.match(source, /disabled=\{!canEdit \|\| busy \|\| !hydrationReady \|\| !valid\}/)
+})
+
+test('saved-settings read failure fails closed instead of allowing defaults to overwrite persisted configuration', () => {
+  assert.match(source, /setHydration\('error'\)/)
+  assert.match(source, /Quick Setup is locked so existing settings cannot be overwritten by blank or default values\./)
+  assert.match(source, /hydration === 'error'/)
+  assert.match(source, />Open advanced setup</)
+})
+
+if (failures > 0) {
+  console.error(`\n${failures} of ${count} Quick Setup tests failed.\n`)
+  process.exit(1)
+}
+
+console.log(`\nAll ${count} Quick Setup tests passed.\n`)
