@@ -1,0 +1,91 @@
+{
+  "schema": "alos.browser-e2e-spec.v1",
+  "projectKey": "pivot-ai-website",
+  "runner": "Gagan8atwal/al-solutions-command-center:alos/runtime/project-browser-acceptance.ts",
+  "sideEffects": "forbidden",
+  "acceptance": {
+    "requireTwoDisjointSessions": true,
+    "requireCorrelatedEvidenceEveryAction": true,
+    "requireExactPinnedSource": true,
+    "requireSameOwnerConsumption": true,
+    "maxPaidCostUsd": 0
+  },
+  "journeys": [
+    {
+      "label": "mobile-public-demo-flow",
+      "width": 390,
+      "height": 844,
+      "startPagePath": "/",
+      "expectText": "Pivot AI",
+      "steps": [
+        {
+          "type": "page",
+          "pagePath": "/demo",
+          "expectText": "See Pivot AI Answer a Real Call"
+        },
+        {
+          "type": "fill",
+          "match": "Business Name",
+          "text": "ALOS Browser QA"
+        },
+        {
+          "type": "fill",
+          "match": "Your Name",
+          "text": "QA User"
+        },
+        {
+          "type": "fill",
+          "match": "Work Email",
+          "text": "qa@example.test"
+        },
+        {
+          "type": "fill",
+          "match": "Business Phone",
+          "text": "+15555550199"
+        },
+        {
+          "type": "snapshot",
+          "expectText": "Get My Free Demo"
+        }
+      ]
+    },
+    {
+      "label": "desktop-pricing-demo-flow",
+      "width": 1440,
+      "height": 900,
+      "startPagePath": "/pricing",
+      "expectText": "Pricing",
+      "steps": [
+        {
+          "type": "page",
+          "pagePath": "/demo",
+          "expectText": "Founder-led Early Access"
+        },
+        {
+          "type": "fill",
+          "match": "Business Name",
+          "text": "ALOS Browser QA"
+        },
+        {
+          "type": "fill",
+          "match": "Your Name",
+          "text": "QA User"
+        },
+        {
+          "type": "fill",
+          "match": "Work Email",
+          "text": "qa@example.test"
+        },
+        {
+          "type": "fill",
+          "match": "Business Phone",
+          "text": "+15555550199"
+        },
+        {
+          "type": "snapshot",
+          "expectText": "SMS consent is optional"
+        }
+      ]
+    }
+  ]
+}
