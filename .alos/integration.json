@@ -23,7 +23,10 @@
     "raw-verifier-evidence",
     "same-project-owner-consumer"
   ],
-  "requiredTools": ["browser.read", "browser.interact"],
+  "requiredTools": [
+    "browser.read",
+    "browser.interact"
+  ],
   "browser": {
     "ownerSha256": "b69fd7c0d1d0a552ab256340991e16055d7ed397973148ecadbe6d8e5af3f269",
     "requireNonRoot": true,
@@ -52,5 +55,14 @@
     "replacement-browser",
     "replacement-router"
   ],
-  "consumerPath": ".alos/zero-key-consumer.mjs"
+  "consumerPath": ".alos/zero-key-consumer.mjs",
+  "browserAcceptance": {
+    "specPath": ".alos/browser-e2e.json",
+    "ownerRunner": "alos/runtime/project-browser-acceptance.ts",
+    "status": "REQUIRED_NOT_YET_EVIDENCED",
+    "requireTwoDisjointSessions": true,
+    "requireCorrelatedEvidenceEveryAction": true,
+    "maxPaidCostUsd": 0,
+    "noSideEffects": true
+  }
 }
