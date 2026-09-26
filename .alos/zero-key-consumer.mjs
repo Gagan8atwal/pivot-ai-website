@@ -3,7 +3,7 @@ export const ALOS_PROJECT_NAME="Pivot AI Website";
 export const ALOS_REPOSITORY="Gagan8atwal/pivot-ai-website";
 export const ALOS_BRANCH="alos/native-core-integration-20260925";
 export const ALOS_ZERO_KEY_MODE="deterministic-zero-key";
-export const ALOS_BROWSER_OWNER_SHA256="169a203d0cd707681d5fe1b23ba252937ed323005385905cca5d795c7c0fb377";
+export const ALOS_BROWSER_OWNER_SHA256="822cc19669d7d1000063e6a380bb73e1d91440f5067eae44d110a4df061b4159";
 export const ALOS_ADMISSION_SCHEMA="alos.project-admission.v1";
 export const ALOS_OWNER_RESULT_SCHEMA="alos.project-owner-result.v1";
 
