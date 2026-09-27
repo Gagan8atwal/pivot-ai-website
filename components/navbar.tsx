@@ -233,9 +233,9 @@ export function Navbar() {
               Contact
             </Button>
           </Link>
-          <Link href="/demo">
+          <Link href="/signup">
             <Button variant="amber" size="sm">
-              Get a Demo
+              Start Setup
             </Button>
           </Link>
         </div>
@@ -318,8 +318,8 @@ export function Navbar() {
             <Link href="/contact" onClick={() => setMobileOpen(false)}>
               <Button variant="outline-navy" size="sm" className="w-full">Contact</Button>
             </Link>
-            <Link href="/demo" onClick={() => setMobileOpen(false)}>
-              <Button variant="amber" size="sm" className="w-full">Get a Demo</Button>
+            <Link href="/signup" onClick={() => setMobileOpen(false)}>
+              <Button variant="amber" size="sm" className="w-full">Start Setup</Button>
             </Link>
           </div>
         </div>
