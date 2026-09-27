@@ -103,12 +103,16 @@ export async function signInWithPassword(email: string, password: string) {
 export async function signUpWithPassword(
   email: string,
   password: string,
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>,
+  emailRedirectTo?: string
 ) {
   const { data, error } = await requireClient().auth.signUp({
     email,
     password,
-    options: { data: metadata },
+    options: {
+      data: metadata,
+      ...(emailRedirectTo ? { emailRedirectTo } : {}),
+    },
   })
   if (error) throw error
   return data
