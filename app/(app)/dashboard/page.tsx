@@ -25,6 +25,7 @@ import { useAuth } from '@/components/app/auth-provider'
 import { useApi } from '@/lib/use-api'
 import { api, asArray, isApiConfigured, type Lead, type Appointment } from '@/lib/api'
 import { appointmentStart, formatDateTime, formatRelative, leadDisplayName, statusTone } from '@/lib/format'
+import { deriveDashboardOnboardingStatus } from '@/lib/dashboard-onboarding-status.mjs'
 
 export default function DashboardPage() {
   const { me, configured } = useAuth()
@@ -63,14 +64,16 @@ export default function DashboardPage() {
 
   const businessName = me?.business?.name ?? 'your business'
 
-  // Only claim a state we actually know. While the request is in flight, or if
-  // it failed, show nothing rather than guessing that setup is incomplete.
+  // Current activation is derived by the backend from historical activation plus
+  // today's authoritative readiness. Never treat activated_at alone as proof that
+  // the receptionist is still live after a phone/calendar capability regression.
   const ob = onboarding.data
-  const activated = Boolean(ob?.state?.activated_at)
-  const completedCount = ob?.state?.completed_steps?.length ?? 0
-  const totalSteps = ob?.totalSteps ?? 7
-  const resumeStep = ob?.state?.current_step ?? 1
-  const showSetupBanner = Boolean(ob) && !activated
+  const onboardingStatus = deriveDashboardOnboardingStatus(ob)
+  const completedCount = onboardingStatus.completedCount
+  const totalSteps = onboardingStatus.totalSteps
+  const resumeStep = onboardingStatus.resumeStep
+  const requiresAttention = onboardingStatus.requiresAttention
+  const showSetupBanner = onboardingStatus.showSetupBanner
 
   return (
     <>
@@ -81,17 +84,19 @@ export default function DashboardPage() {
         >
           <div className="min-w-0">
             <p className="font-medium text-amber-200">
-              Your AI receptionist isn&apos;t live yet.
+              {requiresAttention ? 'Your AI receptionist needs attention.' : "Your AI receptionist isn't live yet."}
             </p>
             <p className="mt-1 text-sm text-amber-200/80">
-              {completedCount === 0
-                ? `Finish setup to start answering calls — ${totalSteps} short steps.`
-                : `${completedCount} of ${totalSteps} steps done. Pick up where you left off at step ${resumeStep}.`}
+              {requiresAttention
+                ? 'A required connection or setting no longer passes readiness. Review setup before relying on live calls.'
+                : completedCount === 0
+                  ? `Finish setup to start answering calls — ${totalSteps} short steps.`
+                  : `${completedCount} of ${totalSteps} steps done. Pick up where you left off at step ${resumeStep}.`}
             </p>
           </div>
           <Link href="/onboarding" className="mt-3 block sm:mt-0 sm:shrink-0">
             <Button variant="amber">
-              {completedCount === 0 ? 'Start setup' : 'Resume setup'}
+              {requiresAttention ? 'Review setup' : completedCount === 0 ? 'Start setup' : 'Resume setup'}
               <ArrowRight className="ml-1.5 h-4 w-4" />
             </Button>
           </Link>

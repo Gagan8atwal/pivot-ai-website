@@ -35,7 +35,7 @@ export default function SignupPage() {
       })
       // If email confirmation is required, there is no active session yet.
       if (data.session) {
-        router.push('/dashboard')
+        router.push('/onboarding')
       } else {
         setSuccess(
           'Account created. Check your inbox to confirm your email, then sign in.'
