@@ -13,5 +13,7 @@ assert.doesNotMatch(signup, /if \(data\.session\) \{\s*router\.push\('\/dashboar
 assert.match(quick, /receptionistPhone: form\.receptionistPhone\.trim\(\) \|\| undefined/)
 assert.match(quick, /This field never buys a number\./)
 assert.match(quick, /activate: true/)
+assert.match(quick, /if \(!isApiConfigured \|\| meLoading \|\| !me\) return/)
+assert.match(quick, /ensureTenant -> \/me handoff/)
 
 console.log('Five-minute onboarding entry contract passed.')
