@@ -89,7 +89,7 @@ function hydrateQuickForm(raw: unknown, fallback: Form): Form {
 }
 
 export function QuickSetup() {
-  const { me } = useAuth()
+  const { me, meLoading, meError } = useAuth()
   const canEdit = can.admin(me?.role)
   const [advanced, setAdvanced] = React.useState(false)
   const [busy, setBusy] = React.useState(false)
@@ -114,7 +114,10 @@ export function QuickSetup() {
   }))
 
   React.useEffect(() => {
-    if (!isApiConfigured) return
+    // Signup lands directly here. Wait for AuthProvider's idempotent
+    // ensureTenant -> /me handoff before asking for tenant-scoped settings;
+    // otherwise a fresh account can race provisioning and falsely lock setup.
+    if (!isApiConfigured || meLoading || !me) return
     let cancelled = false
 
     api.settings.get().then((raw) => {
@@ -129,7 +132,13 @@ export function QuickSetup() {
     })
 
     return () => { cancelled = true }
-  }, [])
+  }, [me, meLoading])
+
+  React.useEffect(() => {
+    if (!isApiConfigured || meLoading || me || !meError) return
+    setHydration('error')
+    setHydrationError(meError)
+  }, [me, meError, meLoading])
 
   if (advanced) {
     const preserved = [
