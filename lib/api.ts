@@ -1,8 +1,8 @@
 /**
  * lib/api.ts — Typed fetch client for the ai-receptionist-voice backend.
  *
- * - Targets `process.env.NEXT_PUBLIC_API_BASE`
- *   (default `https://ai-receptionist-voice.onrender.com`).
+ * - Targets the explicitly configured `process.env.NEXT_PUBLIC_API_BASE`.
+ *   There is no hosted-provider fallback; missing configuration fails closed.
  * - Attaches `Authorization: Bearer <supabase access token>` to `/app/*`
  *   (and `/auth/ensure-tenant`) calls automatically.
  * - Returns typed responses and throws a typed `ApiError` on failure.
@@ -16,11 +16,9 @@ import { pickArray } from '@/lib/parse'
 
 // Strip whitespace + ALL trailing slashes so `${API_BASE}${path}` never yields
 // a double slash (which can produce an invalid request path).
-export const API_BASE =
-  normalizeBaseUrl(process.env.NEXT_PUBLIC_API_BASE) ||
-  'https://ai-receptionist-voice.onrender.com'
+export const API_BASE = normalizeBaseUrl(process.env.NEXT_PUBLIC_API_BASE)
 
-export const isApiConfigured = Boolean(process.env.NEXT_PUBLIC_API_BASE?.trim())
+export const isApiConfigured = Boolean(API_BASE)
 
 // ─── Error type ───────────────────────────────────────────────────────────────
 export class ApiError extends Error {
@@ -50,6 +48,7 @@ function needsAuth(path: string, explicit?: boolean): boolean {
 }
 
 function buildUrl(path: string, query?: RequestOptions['query']): string {
+  if (!API_BASE) throw new ApiError('Pivot backend is not configured.', 0)
   const url = new URL(`${API_BASE}${path.startsWith('/') ? path : `/${path}`}`)
   if (query) {
     for (const [k, v] of Object.entries(query)) {
@@ -345,15 +344,68 @@ export interface OnboardingReadiness {
 export interface OnboardingIntegrations {
   calendar: boolean
   phone: boolean
+  phoneNumber?: string | null
+  phoneStatus?: string | null
+  sidecars?: { ready: boolean }
   sms: { enabled: boolean; deliverable: boolean; reason?: string | null }
   email: boolean
 }
 
+export interface OnboardingActivation {
+  active?: boolean
+  activated?: boolean
+  status?: string | null
+  previouslyActivated?: boolean
+  activatedAt?: string | null
+  [k: string]: unknown
+}
+
+export interface OnboardingTestCall {
+  available?: boolean
+  received?: boolean
+  call?: {
+    id?: string | null
+    callerNumber?: string | null
+    status?: string | null
+    createdAt?: string | null
+  } | null
+}
+
 export interface OnboardingResponse {
   state: OnboardingStateRecord
+  activation?: OnboardingActivation
+  testCall?: OnboardingTestCall
   totalSteps: number
   readiness: OnboardingReadiness
   integrations: OnboardingIntegrations
+}
+
+export interface QuickOnboardingInput {
+  businessName: string
+  timezone: string
+  hours: string
+  services: string
+  location?: string
+  ownerPhone?: string
+  ownerEmail?: string
+  agentName?: string
+  tone?: string
+  greeting?: string
+  bookingEnabled?: boolean
+  receptionistPhone?: string
+  activate?: boolean
+}
+
+export interface QuickOnboardingResponse {
+  ok?: boolean
+  settings_saved?: boolean
+  phone_connected?: boolean
+  activated?: boolean
+  activatedAt?: string | null
+  readiness?: OnboardingReadiness
+  blockers?: ReadinessIssue[]
+  warnings?: ReadinessIssue[]
+  [k: string]: unknown
 }
 
 export interface OnboardingSaveResponse {
@@ -505,6 +557,8 @@ export const api = {
 
   onboarding: {
     get: () => apiFetch<OnboardingResponse>('/app/onboarding'),
+    quick: (body: QuickOnboardingInput) =>
+      apiFetch<QuickOnboardingResponse>('/app/onboarding/quick', { method: 'POST', body }),
     /** Persist wizard progress. `completedStep` marks a step really finished. */
     save: (body: {
       currentStep: number
