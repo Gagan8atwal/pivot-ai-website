@@ -23,22 +23,27 @@ export default function SignupPage() {
     e.preventDefault()
     setError(null)
     setSuccess(null)
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters.')
+    if (password.length < 12) {
+      setError('Password must be at least 12 characters.')
       return
     }
     setLoading(true)
     try {
-      const data = await signUpWithPassword(email, password, {
-        full_name: name,
-        business_name: business,
-      })
+      const data = await signUpWithPassword(
+        email,
+        password,
+        {
+          full_name: name,
+          business_name: business,
+        },
+        typeof window !== 'undefined' ? `${window.location.origin}/onboarding` : undefined
+      )
       // If email confirmation is required, there is no active session yet.
       if (data.session) {
-        router.push('/dashboard')
+        router.push('/onboarding')
       } else {
         setSuccess(
-          'Account created. Check your inbox to confirm your email, then sign in.'
+          'Account created. Check your inbox to confirm your email; the link will bring you back to setup.'
         )
       }
     } catch (err) {
@@ -100,7 +105,7 @@ export default function SignupPage() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="At least 8 characters"
+            placeholder="At least 12 characters"
             autoComplete="new-password"
           />
         </Field>
