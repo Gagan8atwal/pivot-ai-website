@@ -45,6 +45,7 @@ test('quick endpoint error offers Advanced fallback without discarding entered f
     'hours',
     'timezone',
     'ownerPhone',
+    'receptionistPhone',
     'ownerEmail',
     'agentName',
     'tone',
@@ -59,6 +60,14 @@ test('activation is requested once through one primary submit CTA', () => {
   assert.equal((source.match(/activate: true/g) ?? []).length, 1, 'activate=true must have one request site')
   assert.equal((source.match(/type="submit"/g) ?? []).length, 1, 'Quick Setup must expose one submit CTA')
   assert.equal((source.match(/Build my receptionist/g) ?? []).length, 1, 'primary activation CTA must be singular')
+})
+
+
+test('quick setup can verify an already-owned receptionist number without purchasing one', () => {
+  assert.match(source, /receptionistPhone: form\.receptionistPhone\.trim\(\) \|\| undefined/)
+  assert.match(source, /Receptionist inbound number you already own/)
+  assert.match(source, /This field never buys a number\./)
+  assert.doesNotMatch(source, /\/app\/onboarding\/phone\/purchase/)
 })
 
 test('phone readiness and messaging/carrier approval stay separate from setup activation', () => {
