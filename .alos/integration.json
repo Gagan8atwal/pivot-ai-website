@@ -16,7 +16,7 @@
   "route": [
     "canonical-project-owner",
     "server-owned-deterministic-agent",
-    "runAgent",
+    "runAgent-internal-deterministic-browser-planner",
     "AlosToolExecutor",
     "persisted-permission-Orchestrator",
     "existing-owner-ALOS-Browser",
@@ -32,7 +32,7 @@
     "requireNonRoot": true,
     "requireNoNewPrivs": true,
     "forbidSandboxOverride": true,
-    "managedPolicyMustRemainUnchanged": true
+    "requirePinnedOwnerModuleHash": true
   },
   "acceptance": {
     "requireTwoDisjointRuns": true,
@@ -40,7 +40,15 @@
     "requireRetryOrReopenProof": true,
     "requireZeroDuplicateSideEffects": true,
     "failClosedOnWrongProject": true,
-    "failClosedOnPermissionDenial": true
+    "failClosedOnPermissionDenial": true,
+    "requireExactlyTwoPersistedRuns": true,
+    "requireTwoDisjointSessionsPerRun": true,
+    "requireProducedByExecutionActionCorrelation": true,
+    "requireExactSourceRef": true,
+    "requireExactSourceRevision": true,
+    "requireExactToolSet": true,
+    "forbidExternalInferenceInDeterministicRunAgent": true,
+    "failClosedOnStaleSource": true
   },
   "forbidden": [
     "vercel",
@@ -59,10 +67,11 @@
   "browserAcceptance": {
     "specPath": ".alos/browser-e2e.json",
     "ownerRunner": "alos/runtime/project-browser-acceptance.ts",
-    "status": "REQUIRED_NOT_YET_EVIDENCED",
+    "status": "SOURCE_READY_LIVE_EVIDENCE_REQUIRED",
     "requireTwoDisjointSessions": true,
     "requireCorrelatedEvidenceEveryAction": true,
     "maxPaidCostUsd": 0,
     "noSideEffects": true
-  }
+  },
+  "browserStaticEntryPath": "alos/browser-proof/index.html"
 }
