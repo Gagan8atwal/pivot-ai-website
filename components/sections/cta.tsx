@@ -52,13 +52,13 @@ export function CTA() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/demo">
+            <Link href="/signup">
               <Button
                 variant="amber"
                 size="xl"
                 className="w-full sm:w-auto group text-base font-bold"
               >
-                Get a Free Demo
+                Start 5-Minute Setup
                 <ArrowRight
                   className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1"
                   aria-hidden="true"
