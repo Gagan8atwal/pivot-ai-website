@@ -27,7 +27,7 @@ type QuickResponse = {
     pronunciationHints?: string[]
     services?: string[]
   }
-  integrations?: { calendar?: boolean; phone?: boolean }
+  integrations?: { calendar?: boolean; phone?: boolean; sidecars?: { ready?: boolean; bundleId?: string | null; reason?: string | null } }
 }
 
 type Form = {
@@ -37,6 +37,7 @@ type Form = {
   hours: string
   timezone: string
   ownerPhone: string
+  receptionistPhone: string
   ownerEmail: string
   agentName: string
   tone: string
@@ -78,6 +79,7 @@ function hydrateQuickForm(raw: unknown, fallback: Form): Form {
     hours: text(settings.hours),
     timezone: text(settings.timezone) || fallback.timezone,
     ownerPhone: text(settings.owner_phone),
+    receptionistPhone: text(settings.twilio_number),
     ownerEmail: text(settings.owner_email),
     agentName: text(settings.agent_name) || fallback.agentName,
     tone: text(settings.tone) || fallback.tone,
@@ -103,6 +105,7 @@ export function QuickSetup() {
     hours: '',
     timezone: defaultTimezone(),
     ownerPhone: '',
+    receptionistPhone: '',
     ownerEmail: '',
     agentName: 'Alex',
     tone: 'Warm, natural, confident, concise, conversational',
@@ -136,6 +139,7 @@ export function QuickSetup() {
       ['Business hours', form.hours],
       ['Timezone', form.timezone],
       ['Owner / forwarding phone', form.ownerPhone],
+      ['Receptionist inbound phone', form.receptionistPhone],
       ['Lead notification email', form.ownerEmail],
       ['Receptionist name', form.agentName],
       ['Conversation style', form.tone],
@@ -208,6 +212,7 @@ export function QuickSetup() {
           hours: form.hours.trim(),
           timezone: form.timezone.trim(),
           ownerPhone: form.ownerPhone.trim() || undefined,
+          receptionistPhone: form.receptionistPhone.trim() || undefined,
           ownerEmail: form.ownerEmail.trim() || undefined,
           agentName: form.agentName.trim() || 'Alex',
           tone: form.tone.trim(),
@@ -328,6 +333,11 @@ export function QuickSetup() {
             <div>
               <label className={LABEL} htmlFor="ownerEmail">Lead notification email</label>
               <input id="ownerEmail" className={FIELD} disabled={!canEdit || formLocked} value={form.ownerEmail} onChange={(e) => patch({ ownerEmail: e.target.value })} placeholder="owner@example.com" type="email" autoComplete="email" />
+            </div>
+            <div className="md:col-span-2">
+              <label className={LABEL} htmlFor="receptionistPhone">Receptionist inbound number you already own</label>
+              <input id="receptionistPhone" className={FIELD} disabled={!canEdit || formLocked} value={form.receptionistPhone} onChange={(e) => patch({ receptionistPhone: e.target.value })} placeholder="+1 559 555 0199" inputMode="tel" autoComplete="tel" />
+              <p className={HELP}>Optional. If supplied, Pivot verifies that this exact Twilio number belongs to the configured provider account before it can count as phone-ready. This field never buys a number.</p>
             </div>
             <label className="md:col-span-2 flex items-start gap-3 rounded-lg border border-slate-200 p-3">
               <input type="checkbox" className="mt-1 h-4 w-4" disabled={!canEdit || formLocked} checked={form.bookingEnabled} onChange={(e) => patch({ bookingEnabled: e.target.checked })} />
