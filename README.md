@@ -50,28 +50,11 @@ Open [http://localhost:3000](http://localhost:3000) to view the site.
 
 ---
 
-## Deployment (Vercel)
+## Runtime
 
-### Option A — Vercel Dashboard
-1. Push this repository to GitHub.
-2. Go to [vercel.com](https://vercel.com) → New Project.
-3. Import the `pivot-ai-website` repository.
-4. Vercel auto-detects Next.js. Click **Deploy**.
-5. Your site is live at `<your-project>.vercel.app`.
-
-### Option B — Vercel CLI
-```bash
-npm i -g vercel
-vercel --prod
-```
-
-### Connect `pivotai.app`
-1. In Vercel → Project → Settings → Domains.
-2. Add `pivotai.app` and `www.pivotai.app`.
-3. Update your DNS registrar with the records Vercel provides.
-4. Vercel provisions SSL automatically.
-
----
+Run the website and Pivot backend on infrastructure you own or self-host.
+The app requires an explicit `NEXT_PUBLIC_API_BASE`; there is no hosted-provider fallback.
+No deployment is performed by this repository.
 
 ## Wiring Up the Forms
 
@@ -92,7 +75,7 @@ Then create `app/api/demo/route.ts` using the Resend SDK.
 Change `<form>` action to your Formspree endpoint.
 
 **Option 3 — Your existing backend**
-POST to `https://ai-receptionist-voice.onrender.com/your-endpoint`.
+POST to your explicitly configured owned Pivot backend.
 
 ---
 
@@ -130,7 +113,7 @@ This site includes:
 
 ## Environment Variables
 
-No environment variables are required for the public marketing site.
+The marketing-only pages can render without app credentials, but signup/onboarding requires the explicit owned backend and auth configuration shown in `.env.example`.
 If you add server-side form handling, create `.env.local`:
 
 ```
