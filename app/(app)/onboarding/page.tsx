@@ -1,5 +1,5 @@
-import { OnboardingWizard } from '@/components/app/onboarding/onboarding-wizard'
+import { FastOnboarding } from '@/components/app/onboarding/fast-onboarding'
 
 export default function OnboardingPage() {
-  return <OnboardingWizard />
+  return <FastOnboarding />
 }
