@@ -97,6 +97,13 @@ test('reopening Quick Setup hydrates persisted settings before the form can be e
   assert.match(source, /disabled=\{!canEdit \|\| busy \|\| !hydrationReady \|\| !valid\}/)
 })
 
+test('fresh signup waits for ensureTenant and /me before tenant-scoped settings hydration', () => {
+  assert.match(source, /const \{ me, meLoading, meError \} = useAuth\(\)/)
+  assert.match(source, /if \(!isApiConfigured \|\| meLoading \|\| !me\) return/)
+  assert.match(source, /ensureTenant -> \/me handoff/)
+  assert.match(source, /\[me, meLoading\]/)
+})
+
 test('saved-settings read failure fails closed instead of allowing defaults to overwrite persisted configuration', () => {
   assert.match(source, /setHydration\('error'\)/)
   assert.match(source, /Quick Setup is locked so existing settings cannot be overwritten by blank or default values\./)
