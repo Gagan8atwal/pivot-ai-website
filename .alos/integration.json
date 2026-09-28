@@ -1,0 +1,66 @@
+{
+  "schema": "alos.project-integration.v1",
+  "projectKey": "pivot-ai-website",
+  "projectName": "Pivot AI Website",
+  "repository": "Gagan8atwal/pivot-ai-website",
+  "branch": "alos/pivot-five-minute-website-onboarding-20260927",
+  "controlPlaneRepository": "Gagan8atwal/al-solutions-command-center",
+  "inference": {
+    "mode": "deterministic-zero-key",
+    "provider": null,
+    "model": null,
+    "providerCredentialRequired": false,
+    "externalModelCalls": 0,
+    "maxPaidCostUsd": 0
+  },
+  "route": [
+    "canonical-project-owner",
+    "server-owned-deterministic-agent",
+    "runAgent-internal-deterministic-browser-planner",
+    "AlosToolExecutor",
+    "persisted-permission-Orchestrator",
+    "existing-owner-ALOS-Browser",
+    "raw-verifier-evidence",
+    "same-project-owner-consumer"
+  ],
+  "requiredTools": ["browser.read", "browser.interact"],
+  "browser": {
+    "ownerSha256": "822cc19669d7d1000063e6a380bb73e1d91440f5067eae44d110a4df061b4159",
+    "requireNonRoot": true,
+    "requireNoNewPrivs": true,
+    "forbidSandboxOverride": true,
+    "requirePinnedOwnerModuleHash": true
+  },
+  "acceptance": {
+    "requireTwoDisjointRuns": true,
+    "requireCorrelatedEvidence": true,
+    "requireRetryOrReopenProof": true,
+    "requireZeroDuplicateSideEffects": true,
+    "requireExactlyTwoPersistedRuns": true,
+    "requireTwoDisjointSessionsPerRun": true,
+    "requireProducedByExecutionActionCorrelation": true,
+    "requireExactSourceRef": true,
+    "requireExactSourceRevision": true,
+    "requireExactToolSet": true,
+    "forbidExternalInferenceInDeterministicRunAgent": true,
+    "failClosedOnWrongProject": true,
+    "failClosedOnPermissionDenial": true,
+    "failClosedOnStaleSource": true
+  },
+  "forbidden": [
+    "vercel","render","railway","hosted-supabase-workload","workstation",
+    "remote-desktop","opera","github-hosted-ci","paid-model-fallback",
+    "replacement-browser","replacement-router"
+  ],
+  "consumerPath": ".alos/zero-key-consumer.mjs",
+  "browserAcceptance": {
+    "specPath": ".alos/browser-e2e.json",
+    "ownerRunner": "alos/runtime/project-browser-acceptance.ts",
+    "status": "SOURCE_READY_LIVE_EVIDENCE_REQUIRED",
+    "requireTwoDisjointSessions": true,
+    "requireCorrelatedEvidenceEveryAction": true,
+    "maxPaidCostUsd": 0,
+    "noSideEffects": true
+  },
+  "browserStaticEntryPath": "alos/browser-proof/index.html"
+}
