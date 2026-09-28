@@ -15,6 +15,8 @@ const cta = read('components/sections/cta.tsx')
 const nav = read('components/navbar.tsx')
 const pricing = read('lib/pricing.ts')
 const env = read('.env.example')
+const proof = read('alos/browser-proof/onboarding/index.html')
+const browserSpec = JSON.parse(read('.alos/browser-e2e.json'))
 
 assert.match(signup, /router\.push\('\/onboarding'\)/)
 assert.match(signup, /window\.location\.origin\}\/onboarding/)
@@ -37,3 +39,12 @@ assert.match(env, /NEXT_PUBLIC_API_BASE=http:\/\/127\.0\.0\.1:3001/)
 assert.doesNotMatch(env, /render\.com/i)
 
 console.log('Pivot website -> signup -> fast onboarding funnel contract PASS')
+
+assert.match(fast, /api\.auth\.ensureTenant\(\)/)
+assert.match(fast, /api\.onboarding\.get\(\)/)
+assert.match(fast, /api\.settings\.get\(\)/)
+assert.match(proof, /SETUP:RELOAD-RESUMES-SAVED-STATE/)
+assert.deepEqual(browserSpec.acceptance.reliabilityProof, {
+  kind: 'retry',
+  expectText: 'SETUP:RELOAD-RESUMES-SAVED-STATE',
+})
