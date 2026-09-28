@@ -8,7 +8,11 @@
     "requireCorrelatedEvidenceEveryAction": true,
     "requireExactPinnedSource": true,
     "requireSameOwnerConsumption": true,
-    "maxPaidCostUsd": 0
+    "maxPaidCostUsd": 0,
+    "reliabilityProof": {
+      "kind": "retry",
+      "expectText": "SETUP:RELOAD-RESUMES-SAVED-STATE"
+    }
   },
   "journeys": [
     {
@@ -18,18 +22,65 @@
       "startPagePath": "/",
       "expectText": "Start 5-Minute Setup",
       "steps": [
-        {"type":"page","pagePath":"/signup","expectText":"Create your Pivot account"},
-        {"type":"fill","match":"Full name","text":"ALOS QA User"},
-        {"type":"fill","match":"Business name","text":"ALOS QA Dental"},
-        {"type":"fill","match":"Work email","text":"qa@example.test"},
-        {"type":"fill","match":"Password","text":"TestingOnly123!"},
-        {"type":"page","pagePath":"/onboarding","expectText":"5-minute setup"},
-        {"type":"fill","match":"Business name","text":"ALOS QA Dental"},
-        {"type":"fill","match":"Timezone","text":"America/Los_Angeles"},
-        {"type":"fill","match":"Business hours","text":"Mon-Fri 8 AM-5 PM"},
-        {"type":"fill","match":"Services","text":"Cleanings, emergency visits"},
-        {"type":"fill","match":"Existing receptionist number","text":"+15595550199"},
-        {"type":"snapshot","expectText":"Save setup & activate if ready"}
+        {
+          "type": "page",
+          "pagePath": "/signup",
+          "expectText": "Create your Pivot account"
+        },
+        {
+          "type": "fill",
+          "match": "Full name",
+          "text": "ALOS QA User"
+        },
+        {
+          "type": "fill",
+          "match": "Business name",
+          "text": "ALOS QA Dental"
+        },
+        {
+          "type": "fill",
+          "match": "Work email",
+          "text": "qa@example.test"
+        },
+        {
+          "type": "fill",
+          "match": "Password",
+          "text": "TestingOnly123!"
+        },
+        {
+          "type": "page",
+          "pagePath": "/onboarding",
+          "expectText": "5-minute setup"
+        },
+        {
+          "type": "fill",
+          "match": "Business name",
+          "text": "ALOS QA Dental"
+        },
+        {
+          "type": "fill",
+          "match": "Timezone",
+          "text": "America/Los_Angeles"
+        },
+        {
+          "type": "fill",
+          "match": "Business hours",
+          "text": "Mon-Fri 8 AM-5 PM"
+        },
+        {
+          "type": "fill",
+          "match": "Services",
+          "text": "Cleanings, emergency visits"
+        },
+        {
+          "type": "fill",
+          "match": "Existing receptionist number",
+          "text": "+15595550199"
+        },
+        {
+          "type": "snapshot",
+          "expectText": "Save setup & activate if ready"
+        }
       ]
     },
     {
@@ -39,13 +90,43 @@
       "startPagePath": "/onboarding",
       "expectText": "Four required business facts",
       "steps": [
-        {"type":"fill","match":"Business name","text":"ALOS QA Dental"},
-        {"type":"fill","match":"Timezone","text":"America/Los_Angeles"},
-        {"type":"fill","match":"Business hours","text":"Mon-Fri 8 AM-5 PM"},
-        {"type":"fill","match":"Services","text":"Cleanings, emergency visits"},
-        {"type":"fill","match":"Existing receptionist number","text":"+15595550199"},
-        {"type":"snapshot","expectText":"Call my receptionist"},
-        {"type":"snapshot","expectText":"Open dashboard"}
+        {
+          "type": "fill",
+          "match": "Business name",
+          "text": "ALOS QA Dental"
+        },
+        {
+          "type": "fill",
+          "match": "Timezone",
+          "text": "America/Los_Angeles"
+        },
+        {
+          "type": "fill",
+          "match": "Business hours",
+          "text": "Mon-Fri 8 AM-5 PM"
+        },
+        {
+          "type": "fill",
+          "match": "Services",
+          "text": "Cleanings, emergency visits"
+        },
+        {
+          "type": "fill",
+          "match": "Existing receptionist number",
+          "text": "+15595550199"
+        },
+        {
+          "type": "snapshot",
+          "expectText": "Call my receptionist"
+        },
+        {
+          "type": "snapshot",
+          "expectText": "Open dashboard"
+        },
+        {
+          "type": "snapshot",
+          "expectText": "SETUP:RELOAD-RESUMES-SAVED-STATE"
+        }
       ]
     }
   ]
