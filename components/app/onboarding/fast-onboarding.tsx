@@ -15,12 +15,21 @@ const E164 = /^\+\d{10,15}$/
 
 function activationIsLive(status: OnboardingResponse | null) {
   const a = status?.activation
-  return Boolean(
+  const activationMarked = Boolean(
     a?.active ||
       a?.activated ||
       a?.status === 'active' ||
       a?.status === 'activated' ||
       status?.state?.activated_at
+  )
+
+  // Customer-facing "live" status is fail-closed: an activation marker alone is
+  // not enough. The current backend snapshot must still say the tenant is ready
+  // and must expose a verified E.164 phone integration.
+  return (
+    activationMarked &&
+    status?.readiness?.ready === true &&
+    verifiedPhone(status) !== null
   )
 }
 
@@ -125,7 +134,7 @@ export function FastOnboarding() {
         activate: true,
       })
       const current = await refresh()
-      if (result.activated || activationIsLive(current)) {
+      if (activationIsLive(current)) {
         setMessage('Your receptionist is active. Make one test call now.')
       } else {
         const blockers = current.readiness?.blockers || result.blockers || []
