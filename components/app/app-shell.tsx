@@ -23,6 +23,8 @@ import {
   Rocket,
   ShieldCheck,
   Sparkles,
+  Loader2,
+  Send,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -30,7 +32,7 @@ import { Badge } from '@/components/ui/badge'
 import { Spinner, NotConfiguredState } from '@/components/app/states'
 import { useAuth } from '@/components/app/auth-provider'
 import { signOut } from '@/lib/auth'
-import { can, roleRank } from '@/lib/api'
+import { api, can, isApiConfigured, roleRank } from '@/lib/api'
 
 interface NavItem {
   href: string
@@ -210,6 +212,125 @@ function TenantIndicator() {
   )
 }
 
+function PivotAssistantSidecar() {
+  const pathname = usePathname()
+  const { me } = useAuth()
+  const businessId = me?.business?.id ?? null
+  const [open, setOpen] = React.useState(false)
+  const [enabled, setEnabled] = React.useState<boolean | null>(null)
+  const [input, setInput] = React.useState('')
+  const [answer, setAnswer] = React.useState<string | null>(null)
+  const [error, setError] = React.useState<string | null>(null)
+  const [pending, setPending] = React.useState(false)
+  const conversationId = React.useRef<string | null>(null)
+
+  React.useEffect(() => {
+    conversationId.current = null
+    setAnswer(null)
+    setError(null)
+    setEnabled(null)
+    if (!businessId) return
+    try {
+      conversationId.current = sessionStorage.getItem(`pivot:sidecar:${businessId}:conversation`)
+    } catch {
+      conversationId.current = null
+    }
+  }, [businessId])
+
+  React.useEffect(() => {
+    if (!open || !isApiConfigured || enabled !== null) return
+    let cancelled = false
+    void api.assistant.overview()
+      .then((result) => {
+        if (!cancelled) setEnabled(result.enabled === true)
+      })
+      .catch(() => {
+        if (!cancelled) setEnabled(false)
+      })
+    return () => { cancelled = true }
+  }, [open, enabled])
+
+  async function ask() {
+    const question = input.trim()
+    if (!question || pending || enabled !== true || !businessId) return
+    setPending(true)
+    setError(null)
+    setAnswer(null)
+    try {
+      let id = conversationId.current
+      if (!id) {
+        const created = await api.assistant.conversations.create({ title: 'Sidecar help' })
+        id = created?.conversation?.id ? String(created.conversation.id) : null
+        if (!id) throw new Error('conversation_unavailable')
+        conversationId.current = id
+        try { sessionStorage.setItem(`pivot:sidecar:${businessId}:conversation`, id) } catch {}
+      }
+      const result = await api.assistant.conversations.send(id, { message: question })
+      const reply = typeof result?.reply === 'string' ? result.reply.trim() : ''
+      if (!reply) throw new Error('empty_assistant_reply')
+      setAnswer(reply)
+      setInput('')
+    } catch {
+      setError('Pivot Assistant could not answer that safely. Open the full Assistant or try again.')
+    } finally {
+      setPending(false)
+    }
+  }
+
+  if (!businessId || pathname === '/assistant' || pathname.startsWith('/assistant/')) return null
+
+  return (
+    <div className="fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6">
+      {open ? (
+        <section className="mb-3 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl" aria-label="Pivot Assistant sidecar">
+          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+            <div>
+              <p className="text-sm font-semibold text-navy-900">Pivot Assistant</p>
+              <p className="text-[11px] text-slate-500">Read-only help for this account</p>
+            </div>
+            <button type="button" onClick={() => setOpen(false)} aria-label="Close Pivot Assistant" className="rounded-md p-2 text-slate-500 hover:bg-slate-100">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="space-y-3 p-4">
+            {!isApiConfigured ? (
+              <p className="text-sm text-slate-600">Pivot backend is not configured.</p>
+            ) : enabled === null ? (
+              <p className="flex items-center gap-2 text-sm text-slate-500"><Loader2 className="h-4 w-4 animate-spin" />Checking assistant…</p>
+            ) : enabled === false ? (
+              <p className="text-sm text-slate-600">Assistant is not enabled for this account yet.</p>
+            ) : (
+              <>
+                {answer ? <p className="rounded-xl bg-slate-50 p-3 text-sm leading-6 text-slate-700">{answer}</p> : <p className="text-sm text-slate-600">Ask about setup, calls, booking, integrations, or account activity.</p>}
+                {error ? <p role="alert" className="text-xs text-red-600">{error}</p> : null}
+                <div className="flex gap-2">
+                  <textarea
+                    value={input}
+                    onChange={(event) => setInput(event.target.value)}
+                    rows={2}
+                    maxLength={1200}
+                    placeholder="What needs attention?"
+                    aria-label="Ask Pivot Assistant"
+                    disabled={pending}
+                    className="min-h-12 flex-1 resize-none rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                  />
+                  <Button type="button" size="icon" onClick={() => void ask()} disabled={pending || !input.trim()} aria-label="Send question">
+                    {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  </Button>
+                </div>
+                <Link href="/assistant" className="block text-right text-xs font-medium text-navy-900 underline">Open full Assistant</Link>
+              </>
+            )}
+          </div>
+        </section>
+      ) : null}
+      <button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-label={open ? 'Close Pivot Assistant' : 'Open Pivot Assistant'} className="ml-auto flex h-12 items-center gap-2 rounded-full bg-navy-900 px-4 text-sm font-semibold text-white shadow-lg">
+        <Sparkles className="h-4 w-4" /> Ask Pivot
+      </button>
+    </div>
+  )
+}
+
 /**
  * Protected app shell: redirects to /login when there is no session,
  * renders a sidebar + top bar around the page content.
@@ -304,6 +425,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         <main className="mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-8">{children}</main>
       </div>
+      <PivotAssistantSidecar />
     </div>
   )
 }
