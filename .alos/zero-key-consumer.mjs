@@ -1,7 +1,7 @@
 export const ALOS_PROJECT_KEY = "pivot-ai-website";
 export const ALOS_PROJECT_NAME = "Pivot AI Website";
 export const ALOS_REPOSITORY = "Gagan8atwal/pivot-ai-website";
-export const ALOS_BRANCH = "alos/pivot-five-minute-website-onboarding-20260927";
+export const ALOS_BRANCH = "build/unified-saas-v3-pivot-sidecar-20260930";
 export const ALOS_ZERO_KEY_MODE = "deterministic-zero-key";
 export const ALOS_BROWSER_OWNER_SHA256 = "822cc19669d7d1000063e6a380bb73e1d91440f5067eae44d110a4df061b4159";
 export const ALOS_ADMISSION_SCHEMA = "alos.project-admission.v1";
