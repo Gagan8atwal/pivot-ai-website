@@ -10,6 +10,8 @@ import {
   ArrowRight,
   MessageSquare,
   BookOpen,
+  AlertTriangle,
+  ShieldCheck,
 } from 'lucide-react'
 import { PageHeader, StatCard } from '@/components/app/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -23,8 +25,8 @@ import {
 } from '@/components/app/states'
 import { useAuth } from '@/components/app/auth-provider'
 import { useApi } from '@/lib/use-api'
-import { api, asArray, isApiConfigured, type Lead, type Appointment } from '@/lib/api'
-import { appointmentStart, formatDateTime, formatRelative, leadDisplayName, statusTone } from '@/lib/format'
+import { api, asArray, can, isApiConfigured, type Lead, type Appointment } from '@/lib/api'
+import { appointmentStart, formatDateTime, formatRelative, leadDisplayName, statusTone, titleCase } from '@/lib/format'
 
 export default function DashboardPage() {
   const { me, configured } = useAuth()
@@ -35,6 +37,14 @@ export default function DashboardPage() {
   // should be pointed at setup rather than left staring at an empty dashboard
   // wondering why no calls are arriving.
   const onboarding = useApi(() => api.onboarding.get(), [])
+  const canViewOps = can.admin(me?.role)
+  const voiceIncidents = useApi(
+    () =>
+      canViewOps
+        ? api.logs.voiceIncidents()
+        : Promise.resolve({ incidents: [], summary: { open: 0, high: 0, repeated_failures_15m: 0 } }),
+    [canViewOps]
+  )
 
   if (!configured || !isApiConfigured) {
     return (
@@ -62,6 +72,8 @@ export default function DashboardPage() {
     )
 
   const businessName = me?.business?.name ?? 'your business'
+  const activeVoiceIncidents = voiceIncidents.data?.incidents ?? []
+  const voiceSummary = voiceIncidents.data?.summary
 
   // Only claim a state we actually know. While the request is in flight, or if
   // it failed, show nothing rather than guessing that setup is incomplete.
@@ -136,6 +148,78 @@ export default function DashboardPage() {
           icon={PhoneCall}
         />
       </div>
+
+      {canViewOps ? (
+        <Card className="mt-6">
+          <CardHeader className="flex-row items-start justify-between gap-4">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                {activeVoiceIncidents.length > 0 ? (
+                  <AlertTriangle className="h-5 w-5 text-amber-600" />
+                ) : (
+                  <ShieldCheck className="h-5 w-5 text-emerald-600" />
+                )}
+                Call reliability
+              </CardTitle>
+              <p className="mt-1 text-sm text-slate-500">
+                Repeated or configuration-level call failures are grouped here automatically.
+              </p>
+            </div>
+            <Link href="/calls" className="text-sm font-medium text-navy-700 hover:underline">
+              View calls
+            </Link>
+          </CardHeader>
+          <CardContent>
+            {voiceIncidents.loading ? (
+              <TableSkeleton rows={2} cols={3} />
+            ) : voiceIncidents.error ? (
+              <ErrorState message={voiceIncidents.error} onRetry={voiceIncidents.refetch} />
+            ) : activeVoiceIncidents.length === 0 ? (
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+                <p className="font-medium text-emerald-900">No active call reliability incidents.</p>
+                <p className="mt-1 text-sm text-emerald-800">
+                  Pivot will open an incident for critical configuration failures immediately, or for a transient failure that repeats at least three times within 15 minutes.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="grid grid-cols-3 gap-3 text-sm">
+                  <div className="rounded-lg border border-slate-200 p-3">
+                    <p className="text-slate-500">Open incidents</p>
+                    <p className="mt-1 text-xl font-semibold text-navy-900">{voiceSummary?.open ?? activeVoiceIncidents.length}</p>
+                  </div>
+                  <div className="rounded-lg border border-slate-200 p-3">
+                    <p className="text-slate-500">High severity</p>
+                    <p className="mt-1 text-xl font-semibold text-navy-900">{voiceSummary?.high ?? 0}</p>
+                  </div>
+                  <div className="rounded-lg border border-slate-200 p-3">
+                    <p className="text-slate-500">Recent repeats</p>
+                    <p className="mt-1 text-xl font-semibold text-navy-900">{voiceSummary?.repeated_failures_15m ?? 0}</p>
+                  </div>
+                </div>
+                <div className="divide-y divide-slate-100 rounded-lg border border-slate-200">
+                  {activeVoiceIncidents.slice(0, 5).map((incident) => (
+                    <div key={incident.id} className="flex items-start justify-between gap-4 p-3">
+                      <div className="min-w-0">
+                        <p className="font-medium text-navy-900">{titleCase(incident.failure_class)}</p>
+                        <p className="mt-1 text-sm text-slate-500">
+                          {incident.customer_impact || 'Inbound call handling may be degraded.'}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-400">
+                          Last seen {formatRelative(incident.last_seen_at)} · {incident.occurrences} occurrence{incident.occurrences === 1 ? '' : 's'}
+                        </p>
+                      </div>
+                      <Badge variant={incident.severity === 'high' ? 'destructive' : 'secondary'} className="capitalize">
+                        {incident.severity}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ) : null}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         {/* Recent leads */}
