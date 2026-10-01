@@ -311,6 +311,30 @@ export interface EmailLog {
   [k: string]: unknown
 }
 
+export interface VoiceIncident {
+  id: string
+  severity: 'high' | 'medium' | 'low' | string
+  state: string
+  title: string
+  customer_impact?: string | null
+  occurrences: number
+  first_seen_at?: string | null
+  last_seen_at?: string | null
+  failure_class: string
+  recent_failures_15m: number
+}
+
+export interface VoiceIncidentSummary {
+  open: number
+  high: number
+  repeated_failures_15m: number
+}
+
+export interface VoiceIncidentsResponse {
+  incidents: VoiceIncident[]
+  summary: VoiceIncidentSummary
+}
+
 export interface Usage {
   [k: string]: unknown
 }
@@ -636,6 +660,8 @@ export const api = {
       apiFetch<SmsLog[]>('/app/logs/sms', { query }),
     email: (query?: RequestOptions['query']) =>
       apiFetch<EmailLog[]>('/app/logs/email', { query }),
+    voiceIncidents: () =>
+      apiFetch<VoiceIncidentsResponse>('/app/ops/voice-incidents'),
   },
 
   usage: () => apiFetch<Usage>('/app/usage'),
