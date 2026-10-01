@@ -311,6 +311,19 @@ export interface EmailLog {
   [k: string]: unknown
 }
 
+export interface CallRecord {
+  id: string
+  caller_number?: string | null
+  status?: string | null
+  failure_class?: string | null
+  intent?: string | null
+  summary?: string | null
+  callback_requested?: boolean | null
+  started_at?: string | null
+  ended_at?: string | null
+  [k: string]: unknown
+}
+
 export interface VoiceIncident {
   id: string
   severity: 'high' | 'medium' | 'low' | string
@@ -563,6 +576,11 @@ export const api = {
       apiFetch<Task>('/app/tasks', { method: 'POST', body }),
     update: (id: string, body: Partial<Task>) =>
       apiFetch<Task>(`/app/tasks/${id}`, { method: 'PATCH', body }),
+  },
+
+  calls: {
+    list: () =>
+      apiFetch<unknown>('/app/calls').then((r) => pickArray<CallRecord>(r, 'calls')),
   },
 
   appointments: {
