@@ -14,12 +14,14 @@
     "read-only account help",
     "business-scoped conversation continuity",
     "assistant availability truth",
-    "full-assistant handoff"
+    "full-assistant handoff",
+    "call reliability dashboard"
   ],
   "forbidden": [
     "settings-write",
     "billing-write",
     "telecom-write",
-    "cross-business-read"
+    "cross-business-read",
+    "raw-provider-error-disclosure"
   ]
 }
