@@ -209,7 +209,7 @@ export default function DashboardPage() {
                           Last seen {formatRelative(incident.last_seen_at)} · {incident.occurrences} occurrence{incident.occurrences === 1 ? '' : 's'}
                         </p>
                       </div>
-                      <Badge variant={incident.severity === 'high' ? 'destructive' : 'secondary'} className="capitalize">
+                      <Badge variant={incident.severity === 'high' ? 'amber' : 'secondary'} className="capitalize">
                         {incident.severity}
                       </Badge>
                     </div>
