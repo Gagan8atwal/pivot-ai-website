@@ -1,1 +1,28 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pivot 5-minute setup</title></head><body><main><p>ALOS exact-source side-effect-free acceptance fixture</p><h1>5-minute setup</h1><p>Four required business facts. Use a number you already own and Pivot can activate in the same save.</p><form><label>Business name <input aria-label="Business name"></label><label>Timezone <input aria-label="Timezone"></label><label>Business hours <input aria-label="Business hours"></label><label>Services <input aria-label="Services"></label><label>Existing receptionist number <input aria-label="Existing receptionist number"></label><button type="button">Save setup & activate if ready</button></form><p>Calendar is optional while appointment booking is off.</p><p>Call my receptionist</p><p>Open dashboard</p><p>Call received after activation</p><p>Reload resumes saved onboarding state before any new activation attempt.</p><p>SETUP:RELOAD-RESUMES-SAVED-STATE</p></main></body></html>
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pivot 5-minute setup</title></head>
+<body><main>
+<p>ALOS exact-source side-effect-free acceptance fixture</p>
+<h1>5-minute setup</h1>
+<p>Four required business facts. Use a number you already own and Pivot can activate in the same save.</p>
+<form id="setup">
+<label>Business name <input name="businessName" aria-label="Business name"></label>
+<label>Timezone <input name="timezone" aria-label="Timezone"></label>
+<label>Business hours <input name="businessHours" aria-label="Business hours"></label>
+<label>Services <input name="services" aria-label="Services"></label>
+<label>Existing receptionist number <input name="receptionistNumber" aria-label="Existing receptionist number"></label>
+<button type="button" id="save">Save setup & activate if ready</button>
+</form>
+<p>Calendar is optional while appointment booking is off.</p>
+<p>Call my receptionist</p><p>Open dashboard</p><p>Call received after activation</p>
+<p>Reload resumes saved onboarding state before any new activation attempt.</p>
+<p id="recovery" aria-live="polite"></p>
+<script>
+const storageKey="pivot-qa-saved-onboarding";
+const form=document.getElementById("setup");
+const recovery=document.getElementById("recovery");
+function values(){return Object.fromEntries(new FormData(form).entries());}
+try{const saved=JSON.parse(localStorage.getItem(storageKey)||"null");if(saved){for(const [name,value] of Object.entries(saved)){const input=form.elements.namedItem(name);if(input)input.value=String(value);}recovery.textContent="SETUP:RELOAD-RESUMES-SAVED-STATE";}}catch{}
+document.getElementById("save").addEventListener("click",()=>{const saved=values();if(Object.values(saved).every(Boolean)){try{localStorage.setItem(storageKey,JSON.stringify(saved));}catch{}recovery.textContent="SETUP:RELOAD-RESUMES-SAVED-STATE";}});
+</script>
+</main></body></html>

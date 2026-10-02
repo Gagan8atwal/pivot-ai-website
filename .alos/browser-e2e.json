@@ -116,6 +116,16 @@
           "text": "+15595550199"
         },
         {
+          "type": "click",
+          "match": "Save setup & activate if ready",
+          "expectText": "SETUP:RELOAD-RESUMES-SAVED-STATE"
+        },
+        {
+          "type": "reopen",
+          "pagePath": "/onboarding",
+          "expectText": "SETUP:RELOAD-RESUMES-SAVED-STATE"
+        },
+        {
           "type": "snapshot",
           "expectText": "Call my receptionist"
         },
