@@ -14,4 +14,9 @@ test('Pivot Kaggle CPU lane is fixed, bounded, source-bound, and cannot deploy o
   assert.equal(manifest.network.deploymentForbidden,true);
   assert.equal(manifest.network.telecomMutationForbidden,true);
   assert.equal(manifest.cost.paidFallback,false);
+  assert.equal(manifest.execution.runnerSchema,'alos.kaggle-saas-cpu-runner.v1');
+  assert.equal(manifest.execution.resultSchema,'alos.kaggle-saas-cpu-result.v1');
+  assert.equal(manifest.execution.resultArtifact,'alos-saas-cpu-result.json');
+  assert.equal(manifest.execution.freshSourceRequiredOnRetry,true);
+  assert.equal(manifest.execution.completedResultReplayForbidden,true);
 });
