@@ -156,6 +156,21 @@
           "type": "reopen",
           "pagePath": "/onboarding",
           "expectText": "SETUP:RECOVERY-NOT-SAVED"
+        },
+        {
+          "type": "click",
+          "match": "Test stale setup isolation",
+          "expectText": "SETUP:RECOVERY-CONTEXT-MISMATCH"
+        },
+        {
+          "type": "click",
+          "match": "Clear recovered setup proof",
+          "expectText": "SETUP:RECOVERY-CLEARED"
+        },
+        {
+          "type": "reopen",
+          "pagePath": "/onboarding",
+          "expectText": "SETUP:RECOVERY-NOT-SAVED"
         }
       ]
     }

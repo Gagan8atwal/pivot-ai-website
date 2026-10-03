@@ -11,7 +11,7 @@
 <label>Business hours <input name="businessHours" aria-label="Business hours"></label>
 <label>Services <input name="services" aria-label="Services"></label>
 <label>Existing receptionist number <input name="receptionistNumber" aria-label="Existing receptionist number"></label>
-<button type="button" id="reset">Start fresh recovery proof</button>\n<button type="button" id="save">Save setup & activate if ready</button>\n<button type="button" id="clear">Clear recovered setup proof</button>
+<button type="button" id="reset">Start fresh recovery proof</button>\n<button type="button" id="save">Save setup & activate if ready</button>\n<button type="button" id="clear">Clear recovered setup proof</button>\n<button type="button" id="stale">Test stale setup isolation</button>
 </form>
 <p>Calendar is optional while appointment booking is off.</p>
 <p>Call my receptionist</p><p>Open dashboard</p><p>Call received after activation</p>
@@ -19,7 +19,9 @@
 <p id="recovery" aria-live="polite"></p>
 <script>
 const storageKey="pivot-qa-saved-onboarding";
-const storageSchema="pivot-onboarding-recovery.v2";
+const storageSchema="pivot-onboarding-recovery.v3";
+const storageProject="pivot";
+const storageRevision="onboarding-recovery-v3";
 const fieldNames=["businessName","timezone","businessHours","services","receptionistNumber"];
 const form=document.getElementById("setup");
 const recovery=document.getElementById("recovery");
@@ -33,8 +35,10 @@ function restoreSavedSetup(){
   try{
     const raw=localStorage.getItem(storageKey);
     if(raw===null){recovery.textContent="SETUP:RECOVERY-NOT-SAVED";return;}
-    const envelope=JSON.parse(raw);
-    if(envelope?.schema!==storageSchema||!validFields(envelope.fields)){recovery.textContent="SETUP:RECOVERY-DATA-INVALID";return;}
+    let envelope;
+    try{envelope=JSON.parse(raw);}catch{recovery.textContent="SETUP:RECOVERY-DATA-INVALID";return;}
+    if(envelope?.schema!==storageSchema||envelope?.project!==storageProject||envelope?.revision!==storageRevision){recovery.textContent="SETUP:RECOVERY-CONTEXT-MISMATCH";return;}
+    if(!validFields(envelope.fields)){recovery.textContent="SETUP:RECOVERY-DATA-INVALID";return;}
     for(const name of fieldNames)form.elements.namedItem(name).value=envelope.fields[name];
     recovery.textContent="SETUP:RELOAD-RESUMES-SAVED-STATE";
   }catch{recovery.textContent="SETUP:RECOVERY-STORAGE-UNAVAILABLE";}
@@ -55,10 +59,18 @@ function clearSavedSetup(){
     recovery.textContent="SETUP:RECOVERY-CLEARED";
   }catch{recovery.textContent="SETUP:RECOVERY-CLEAR-BLOCKED";}
 }
+function testStaleSavedSetup(){
+  const stale=JSON.stringify({schema:storageSchema,project:"other-project",revision:storageRevision,fields:{}});
+  try{
+    localStorage.setItem(storageKey,stale);
+    if(localStorage.getItem(storageKey)!==stale){recovery.textContent="SETUP:RECOVERY-STALE-TEST-BLOCKED";return;}
+    restoreSavedSetup();
+  }catch{recovery.textContent="SETUP:RECOVERY-STALE-TEST-BLOCKED";}
+}
 function persistSavedSetup(){
   const saved=values();
   if(!validFields(saved)){recovery.textContent="SETUP:REQUIRED-FIELDS-MISSING";return;}
-  const encoded=JSON.stringify({schema:storageSchema,fields:saved});
+  const encoded=JSON.stringify({schema:storageSchema,project:storageProject,revision:storageRevision,fields:saved});
   try{
     if(localStorage.getItem(storageKey)===encoded){recovery.textContent="SETUP:RECOVERY-IDEMPOTENT";return;}
     localStorage.setItem(storageKey,encoded);
@@ -71,5 +83,6 @@ restoreSavedSetup();
 document.getElementById("reset").addEventListener("click",resetSavedSetup);
 document.getElementById("save").addEventListener("click",persistSavedSetup);
 document.getElementById("clear").addEventListener("click",clearSavedSetup);
+document.getElementById("stale").addEventListener("click",testStaleSavedSetup);
 </script>
 </main></body></html>
