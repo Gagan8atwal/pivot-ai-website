@@ -1,0 +1,63 @@
+{
+  "schema": "alos.kaggle-cpu-project.v1",
+  "projectKey": "pivot",
+  "repository": "Gagan8atwal/pivot-ai-website",
+  "branch": "build/unified-saas-v3-pivot-sidecar-20260930",
+  "runtime": {
+    "node": "22.x",
+    "gpu": false
+  },
+  "install": [
+    "npm",
+    "ci",
+    "--ignore-scripts",
+    "--no-audit",
+    "--no-fund"
+  ],
+  "gates": [
+    [
+      "npm",
+      "test"
+    ],
+    [
+      "npm",
+      "run",
+      "typecheck"
+    ],
+    [
+      "npm",
+      "run",
+      "build"
+    ]
+  ],
+  "limits": {
+    "attempts": 2,
+    "timeoutMinutes": 40,
+    "memoryGiB": 12,
+    "cpus": 4
+  },
+  "isolation": {
+    "workspacePerJob": true,
+    "cleanCheckout": true,
+    "sourceRevisionRequired": true,
+    "projectKeyRequired": true
+  },
+  "network": {
+    "internetRequired": true,
+    "allowedPurposes": [
+      "private source checkout",
+      "npm dependency install"
+    ],
+    "deploymentForbidden": true,
+    "telecomMutationForbidden": true
+  },
+  "evidence": {
+    "checksums": true,
+    "commandResults": true,
+    "sourceRevision": true
+  },
+  "cost": {
+    "paidFallback": false,
+    "gpu": false
+  }
+}
