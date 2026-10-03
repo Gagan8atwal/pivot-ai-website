@@ -54,9 +54,18 @@ export function FastOnboarding() {
   const [error, setError] = React.useState<string | null>(null)
 
   const refresh = React.useCallback(async () => {
-    const current = await api.onboarding.get()
-    setStatus(current)
-    return current
+    setError(null)
+    try {
+      const current = await api.onboarding.get()
+      setStatus(current)
+      return current
+    } catch (err) {
+      // Authority reads fail closed: never keep showing a stale "live" card when
+      // the backend cannot confirm the current phone/readiness state.
+      setStatus(null)
+      setError(`Could not verify live onboarding status. ${errorMessage(err)}`)
+      return null
+    }
   }, [])
 
   React.useEffect(() => {
@@ -134,6 +143,12 @@ export function FastOnboarding() {
         activate: true,
       })
       const current = await refresh()
+      if (!current) {
+        setMessage(
+          'Your setup request was accepted, but live call status could not be re-verified. Refresh authoritative status before testing calls.'
+        )
+        return
+      }
       if (activationIsLive(current)) {
         setMessage('Your receptionist is active. Make one test call now.')
       } else {
@@ -285,6 +300,15 @@ export function FastOnboarding() {
               <Button type="submit" size="lg" className="w-full" disabled={saving}>
                 {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 {saving ? 'Saving…' : 'Save setup & activate if ready'}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => void refresh()}
+                disabled={saving}
+              >
+                <RefreshCw className="mr-2 h-4 w-4" /> Refresh authoritative status
               </Button>
 
               <p className="text-center text-xs text-slate-500">
