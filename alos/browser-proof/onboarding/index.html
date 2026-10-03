@@ -11,7 +11,7 @@
 <label>Business hours <input name="businessHours" aria-label="Business hours"></label>
 <label>Services <input name="services" aria-label="Services"></label>
 <label>Existing receptionist number <input name="receptionistNumber" aria-label="Existing receptionist number"></label>
-<button type="button" id="reset">Start fresh recovery proof</button>\n<button type="button" id="save">Save setup & activate if ready</button>
+<button type="button" id="reset">Start fresh recovery proof</button>\n<button type="button" id="save">Save setup & activate if ready</button>\n<button type="button" id="clear">Clear recovered setup proof</button>
 </form>
 <p>Calendar is optional while appointment booking is off.</p>
 <p>Call my receptionist</p><p>Open dashboard</p><p>Call received after activation</p>
@@ -32,7 +32,7 @@ function validFields(saved){
 function restoreSavedSetup(){
   try{
     const raw=localStorage.getItem(storageKey);
-    if(raw===null)return;
+    if(raw===null){recovery.textContent="SETUP:RECOVERY-NOT-SAVED";return;}
     const envelope=JSON.parse(raw);
     if(envelope?.schema!==storageSchema||!validFields(envelope.fields)){recovery.textContent="SETUP:RECOVERY-DATA-INVALID";return;}
     for(const name of fieldNames)form.elements.namedItem(name).value=envelope.fields[name];
@@ -46,6 +46,14 @@ function resetSavedSetup(){
     for(const name of fieldNames)form.elements.namedItem(name).value="";
     recovery.textContent="SETUP:RECOVERY-RESET";
   }catch{recovery.textContent="SETUP:RECOVERY-RESET-BLOCKED";}
+}
+function clearSavedSetup(){
+  try{
+    localStorage.removeItem(storageKey);
+    if(localStorage.getItem(storageKey)!==null){recovery.textContent="SETUP:RECOVERY-CLEAR-BLOCKED";return;}
+    for(const name of fieldNames)form.elements.namedItem(name).value="";
+    recovery.textContent="SETUP:RECOVERY-CLEARED";
+  }catch{recovery.textContent="SETUP:RECOVERY-CLEAR-BLOCKED";}
 }
 function persistSavedSetup(){
   const saved=values();
@@ -62,5 +70,6 @@ function persistSavedSetup(){
 restoreSavedSetup();
 document.getElementById("reset").addEventListener("click",resetSavedSetup);
 document.getElementById("save").addEventListener("click",persistSavedSetup);
+document.getElementById("clear").addEventListener("click",clearSavedSetup);
 </script>
 </main></body></html>

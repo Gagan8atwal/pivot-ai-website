@@ -146,6 +146,16 @@
         {
           "type": "snapshot",
           "expectText": "SETUP:RELOAD-RESUMES-SAVED-STATE"
+        },
+        {
+          "type": "click",
+          "match": "Clear recovered setup proof",
+          "expectText": "SETUP:RECOVERY-CLEARED"
+        },
+        {
+          "type": "reopen",
+          "pagePath": "/onboarding",
+          "expectText": "SETUP:RECOVERY-NOT-SAVED"
         }
       ]
     }
