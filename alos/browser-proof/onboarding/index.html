@@ -19,10 +19,37 @@
 <p id="recovery" aria-live="polite"></p>
 <script>
 const storageKey="pivot-qa-saved-onboarding";
+const fieldNames=["businessName","timezone","businessHours","services","receptionistNumber"];
 const form=document.getElementById("setup");
 const recovery=document.getElementById("recovery");
 function values(){return Object.fromEntries(new FormData(form).entries());}
-try{const saved=JSON.parse(localStorage.getItem(storageKey)||"null");if(saved){for(const [name,value] of Object.entries(saved)){const input=form.elements.namedItem(name);if(input)input.value=String(value);}recovery.textContent="SETUP:RELOAD-RESUMES-SAVED-STATE";}}catch{}
-document.getElementById("save").addEventListener("click",()=>{const saved=values();if(Object.values(saved).every(Boolean)){try{localStorage.setItem(storageKey,JSON.stringify(saved));}catch{}recovery.textContent="SETUP:RELOAD-RESUMES-SAVED-STATE";}});
+function validFields(saved){
+  return saved&&typeof saved==="object"&&!Array.isArray(saved)&&
+    Object.keys(saved).length===fieldNames.length&&
+    fieldNames.every((name)=>typeof saved[name]==="string"&&saved[name].length>0);
+}
+function restoreSavedSetup(){
+  try{
+    const raw=localStorage.getItem(storageKey);
+    if(raw===null)return;
+    const saved=JSON.parse(raw);
+    if(!validFields(saved)){recovery.textContent="SETUP:RECOVERY-DATA-INVALID";return;}
+    for(const name of fieldNames)form.elements.namedItem(name).value=saved[name];
+    recovery.textContent="SETUP:RELOAD-RESUMES-SAVED-STATE";
+  }catch{recovery.textContent="SETUP:RECOVERY-STORAGE-UNAVAILABLE";}
+}
+function persistSavedSetup(){
+  const saved=values();
+  if(!validFields(saved)){recovery.textContent="SETUP:REQUIRED-FIELDS-MISSING";return;}
+  const encoded=JSON.stringify(saved);
+  try{
+    localStorage.setItem(storageKey,encoded);
+    recovery.textContent=localStorage.getItem(storageKey)===encoded
+      ?"SETUP:RELOAD-RESUMES-SAVED-STATE"
+      :"SETUP:RECOVERY-PERSISTENCE-BLOCKED";
+  }catch{recovery.textContent="SETUP:RECOVERY-PERSISTENCE-BLOCKED";}
+}
+restoreSavedSetup();
+document.getElementById("save").addEventListener("click",persistSavedSetup);
 </script>
 </main></body></html>
