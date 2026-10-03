@@ -54,9 +54,18 @@ export function FastOnboarding() {
   const [error, setError] = React.useState<string | null>(null)
 
   const refresh = React.useCallback(async () => {
-    const current = await api.onboarding.get()
-    setStatus(current)
-    return current
+    try {
+      const current = await api.onboarding.get()
+      setStatus(current)
+      return current
+    } catch (err) {
+      // Never leave a previously-live card visible when the authoritative
+      // onboarding read fails. The caller may retry, but stale telecom,
+      // calendar, or activation state is not customer truth.
+      setStatus(null)
+      setError(errorMessage(err))
+      throw err
+    }
   }, [])
 
   React.useEffect(() => {
@@ -212,7 +221,7 @@ export function FastOnboarding() {
                   </Button>
                 </a>
               )}
-              <Button type="button" variant="outline" onClick={() => void refresh()}>
+              <Button type="button" variant="outline" onClick={() => void refresh().catch(() => undefined)}>
                 <RefreshCw className="mr-2 h-4 w-4" /> Refresh
               </Button>
               <Link href="/dashboard">
