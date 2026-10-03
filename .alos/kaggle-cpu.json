@@ -59,5 +59,12 @@
   "cost": {
     "paidFallback": false,
     "gpu": false
+  },
+  "execution": {
+    "runnerSchema": "alos.kaggle-saas-cpu-runner.v1",
+    "resultSchema": "alos.kaggle-saas-cpu-result.v1",
+    "resultArtifact": "alos-saas-cpu-result.json",
+    "freshSourceRequiredOnRetry": true,
+    "completedResultReplayForbidden": true
   }
 }
