@@ -52,6 +52,7 @@ function persistSavedSetup(){
   if(!validFields(saved)){recovery.textContent="SETUP:REQUIRED-FIELDS-MISSING";return;}
   const encoded=JSON.stringify({schema:storageSchema,fields:saved});
   try{
+    if(localStorage.getItem(storageKey)===encoded){recovery.textContent="SETUP:RECOVERY-IDEMPOTENT";return;}
     localStorage.setItem(storageKey,encoded);
     recovery.textContent=localStorage.getItem(storageKey)===encoded
       ?"SETUP:RELOAD-RESUMES-SAVED-STATE"

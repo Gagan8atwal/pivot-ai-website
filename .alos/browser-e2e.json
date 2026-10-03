@@ -126,6 +126,11 @@
           "expectText": "SETUP:RELOAD-RESUMES-SAVED-STATE"
         },
         {
+          "type": "click",
+          "match": "Save setup & activate if ready",
+          "expectText": "SETUP:RECOVERY-IDEMPOTENT"
+        },
+        {
           "type": "reopen",
           "pagePath": "/onboarding",
           "expectText": "SETUP:RELOAD-RESUMES-SAVED-STATE"
