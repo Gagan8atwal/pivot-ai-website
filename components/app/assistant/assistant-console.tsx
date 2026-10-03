@@ -80,11 +80,18 @@ function ToolCatalogue({ overview }: { overview: AssistantOverview }) {
   )
 }
 
+async function assertAssistantAuthorityReadable() {
+  // The Assistant is another customer surface: it must not operate from stale
+  // settings, calendar, or phone truth when either authoritative read fails.
+  await Promise.all([api.settings.get(), api.onboarding.get()])
+}
+
 export function AssistantConsole() {
   // ── Feature flag + capabilities ────────────────────────────────────────────
   const overview = useApi(async () => {
     try {
-      return { notEnabled: false, data: await api.assistant.overview() }
+      const [data] = await Promise.all([api.assistant.overview(), assertAssistantAuthorityReadable()])
+      return { notEnabled: false, data }
     } catch (err) {
       if (isNotEnabledError(err)) return { notEnabled: true, data: null }
       throw err
@@ -202,6 +209,7 @@ export function AssistantConsole() {
       }
 
       try {
+        await assertAssistantAuthorityReadable()
         let conversationId = activeId
         if (!conversationId) {
           const created = await api.assistant.conversations.create({
