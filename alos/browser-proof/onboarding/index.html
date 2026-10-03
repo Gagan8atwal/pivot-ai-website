@@ -11,7 +11,7 @@
 <label>Business hours <input name="businessHours" aria-label="Business hours"></label>
 <label>Services <input name="services" aria-label="Services"></label>
 <label>Existing receptionist number <input name="receptionistNumber" aria-label="Existing receptionist number"></label>
-<button type="button" id="save">Save setup & activate if ready</button>
+<button type="button" id="reset">Start fresh recovery proof</button>\n<button type="button" id="save">Save setup & activate if ready</button>
 </form>
 <p>Calendar is optional while appointment booking is off.</p>
 <p>Call my receptionist</p><p>Open dashboard</p><p>Call received after activation</p>
@@ -19,6 +19,7 @@
 <p id="recovery" aria-live="polite"></p>
 <script>
 const storageKey="pivot-qa-saved-onboarding";
+const storageSchema="pivot-onboarding-recovery.v2";
 const fieldNames=["businessName","timezone","businessHours","services","receptionistNumber"];
 const form=document.getElementById("setup");
 const recovery=document.getElementById("recovery");
@@ -32,16 +33,24 @@ function restoreSavedSetup(){
   try{
     const raw=localStorage.getItem(storageKey);
     if(raw===null)return;
-    const saved=JSON.parse(raw);
-    if(!validFields(saved)){recovery.textContent="SETUP:RECOVERY-DATA-INVALID";return;}
-    for(const name of fieldNames)form.elements.namedItem(name).value=saved[name];
+    const envelope=JSON.parse(raw);
+    if(envelope?.schema!==storageSchema||!validFields(envelope.fields)){recovery.textContent="SETUP:RECOVERY-DATA-INVALID";return;}
+    for(const name of fieldNames)form.elements.namedItem(name).value=envelope.fields[name];
     recovery.textContent="SETUP:RELOAD-RESUMES-SAVED-STATE";
   }catch{recovery.textContent="SETUP:RECOVERY-STORAGE-UNAVAILABLE";}
+}
+function resetSavedSetup(){
+  try{
+    localStorage.removeItem(storageKey);
+    if(localStorage.getItem(storageKey)!==null){recovery.textContent="SETUP:RECOVERY-RESET-BLOCKED";return;}
+    for(const name of fieldNames)form.elements.namedItem(name).value="";
+    recovery.textContent="SETUP:RECOVERY-RESET";
+  }catch{recovery.textContent="SETUP:RECOVERY-RESET-BLOCKED";}
 }
 function persistSavedSetup(){
   const saved=values();
   if(!validFields(saved)){recovery.textContent="SETUP:REQUIRED-FIELDS-MISSING";return;}
-  const encoded=JSON.stringify(saved);
+  const encoded=JSON.stringify({schema:storageSchema,fields:saved});
   try{
     localStorage.setItem(storageKey,encoded);
     recovery.textContent=localStorage.getItem(storageKey)===encoded
@@ -50,6 +59,7 @@ function persistSavedSetup(){
   }catch{recovery.textContent="SETUP:RECOVERY-PERSISTENCE-BLOCKED";}
 }
 restoreSavedSetup();
+document.getElementById("reset").addEventListener("click",resetSavedSetup);
 document.getElementById("save").addEventListener("click",persistSavedSetup);
 </script>
 </main></body></html>

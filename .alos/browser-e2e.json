@@ -91,6 +91,11 @@
       "expectText": "Four required business facts",
       "steps": [
         {
+          "type": "click",
+          "match": "Start fresh recovery proof",
+          "expectText": "SETUP:RECOVERY-RESET"
+        },
+        {
           "type": "fill",
           "match": "Business name",
           "text": "ALOS QA Dental"
