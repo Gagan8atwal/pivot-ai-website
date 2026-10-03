@@ -11,78 +11,30 @@
 <label>Business hours <input name="businessHours" aria-label="Business hours"></label>
 <label>Services <input name="services" aria-label="Services"></label>
 <label>Existing receptionist number <input name="receptionistNumber" aria-label="Existing receptionist number"></label>
-<button type="button" id="reset">Start fresh recovery proof</button>\n<button type="button" id="save">Save setup & activate if ready</button>\n<button type="button" id="clear">Clear recovered setup proof</button>\n<button type="button" id="stale">Test stale setup isolation</button>
+<button type="button" id="reset">Start fresh recovery proof</button>\n<button type="button" id="save">Save setup & activate if ready</button>\n<button type="button" id="clear">Clear recovered setup proof</button>\n<button type="button" id="stale">Test stale setup isolation</button>\n<button type="button" id="replay">Test setup replay rejection</button>
 </form>
 <p>Calendar is optional while appointment booking is off.</p>
 <p>Call my receptionist</p><p>Open dashboard</p><p>Call received after activation</p>
 <p>Reload resumes saved onboarding state before any new activation attempt.</p>
 <p id="recovery" aria-live="polite"></p>
 <script>
-const storageKey="pivot-qa-saved-onboarding";
-const storageSchema="pivot-onboarding-recovery.v3";
-const storageProject="pivot";
-const storageRevision="onboarding-recovery-v3";
-const fieldNames=["businessName","timezone","businessHours","services","receptionistNumber"];
-const form=document.getElementById("setup");
-const recovery=document.getElementById("recovery");
+const storageKey="pivot-qa-saved-onboarding",storageEpochKey="pivot-qa-onboarding-epoch",storageSchema="pivot-onboarding-recovery.v4",storageProject="pivot",storageRevision="onboarding-recovery-v4";
+const fieldNames=["businessName","timezone","businessHours","services","receptionistNumber"],form=document.getElementById("setup"),recovery=document.getElementById("recovery");
 function values(){return Object.fromEntries(new FormData(form).entries());}
-function validFields(saved){
-  return saved&&typeof saved==="object"&&!Array.isArray(saved)&&
-    Object.keys(saved).length===fieldNames.length&&
-    fieldNames.every((name)=>typeof saved[name]==="string"&&saved[name].length>0);
-}
-function restoreSavedSetup(){
-  try{
-    const raw=localStorage.getItem(storageKey);
-    if(raw===null){recovery.textContent="SETUP:RECOVERY-NOT-SAVED";return;}
-    let envelope;
-    try{envelope=JSON.parse(raw);}catch{recovery.textContent="SETUP:RECOVERY-DATA-INVALID";return;}
-    if(envelope?.schema!==storageSchema||envelope?.project!==storageProject||envelope?.revision!==storageRevision){recovery.textContent="SETUP:RECOVERY-CONTEXT-MISMATCH";return;}
-    if(!validFields(envelope.fields)){recovery.textContent="SETUP:RECOVERY-DATA-INVALID";return;}
-    for(const name of fieldNames)form.elements.namedItem(name).value=envelope.fields[name];
-    recovery.textContent="SETUP:RELOAD-RESUMES-SAVED-STATE";
-  }catch{recovery.textContent="SETUP:RECOVERY-STORAGE-UNAVAILABLE";}
-}
-function resetSavedSetup(){
-  try{
-    localStorage.removeItem(storageKey);
-    if(localStorage.getItem(storageKey)!==null){recovery.textContent="SETUP:RECOVERY-RESET-BLOCKED";return;}
-    for(const name of fieldNames)form.elements.namedItem(name).value="";
-    recovery.textContent="SETUP:RECOVERY-RESET";
-  }catch{recovery.textContent="SETUP:RECOVERY-RESET-BLOCKED";}
-}
-function clearSavedSetup(){
-  try{
-    localStorage.removeItem(storageKey);
-    if(localStorage.getItem(storageKey)!==null){recovery.textContent="SETUP:RECOVERY-CLEAR-BLOCKED";return;}
-    for(const name of fieldNames)form.elements.namedItem(name).value="";
-    recovery.textContent="SETUP:RECOVERY-CLEARED";
-  }catch{recovery.textContent="SETUP:RECOVERY-CLEAR-BLOCKED";}
-}
-function testStaleSavedSetup(){
-  const stale=JSON.stringify({schema:storageSchema,project:"other-project",revision:storageRevision,fields:{}});
-  try{
-    localStorage.setItem(storageKey,stale);
-    if(localStorage.getItem(storageKey)!==stale){recovery.textContent="SETUP:RECOVERY-STALE-TEST-BLOCKED";return;}
-    restoreSavedSetup();
-  }catch{recovery.textContent="SETUP:RECOVERY-STALE-TEST-BLOCKED";}
-}
-function persistSavedSetup(){
-  const saved=values();
-  if(!validFields(saved)){recovery.textContent="SETUP:REQUIRED-FIELDS-MISSING";return;}
-  const encoded=JSON.stringify({schema:storageSchema,project:storageProject,revision:storageRevision,fields:saved});
-  try{
-    if(localStorage.getItem(storageKey)===encoded){recovery.textContent="SETUP:RECOVERY-IDEMPOTENT";return;}
-    localStorage.setItem(storageKey,encoded);
-    recovery.textContent=localStorage.getItem(storageKey)===encoded
-      ?"SETUP:RELOAD-RESUMES-SAVED-STATE"
-      :"SETUP:RECOVERY-PERSISTENCE-BLOCKED";
-  }catch{recovery.textContent="SETUP:RECOVERY-PERSISTENCE-BLOCKED";}
-}
+function validFields(saved){return saved&&typeof saved==="object"&&!Array.isArray(saved)&&Object.keys(saved).length===fieldNames.length&&fieldNames.every((name)=>typeof saved[name]==="string"&&saved[name].length>0);}
+function readEpoch(){const raw=localStorage.getItem(storageEpochKey);if(raw===null)return 1;if(!/^[1-9]\d*$/.test(raw))return null;const value=Number(raw);return Number.isSafeInteger(value)?value:null;}
+function restoreSavedSetup(){try{const raw=localStorage.getItem(storageKey);if(raw===null){recovery.textContent="SETUP:RECOVERY-NOT-SAVED";return;}let envelope;try{envelope=JSON.parse(raw);}catch{recovery.textContent="SETUP:RECOVERY-DATA-INVALID";return;}if(envelope?.schema!==storageSchema||envelope?.project!==storageProject||envelope?.revision!==storageRevision){recovery.textContent="SETUP:RECOVERY-CONTEXT-MISMATCH";return;}const epoch=readEpoch();if(epoch===null){recovery.textContent="SETUP:RECOVERY-EPOCH-INVALID";return;}if(envelope.epoch!==epoch){recovery.textContent="SETUP:RECOVERY-REPLAY-REJECTED";return;}if(!validFields(envelope.fields)){recovery.textContent="SETUP:RECOVERY-DATA-INVALID";return;}for(const name of fieldNames)form.elements.namedItem(name).value=envelope.fields[name];recovery.textContent="SETUP:RELOAD-RESUMES-SAVED-STATE";}catch{recovery.textContent="SETUP:RECOVERY-STORAGE-UNAVAILABLE";}}
+function rotateSavedSetup(success,blocked){try{const current=readEpoch();if(current===null||current===Number.MAX_SAFE_INTEGER){recovery.textContent="SETUP:RECOVERY-EPOCH-INVALID";return;}const next=String(current+1);localStorage.setItem(storageEpochKey,next);if(localStorage.getItem(storageEpochKey)!==next){recovery.textContent=blocked;return;}localStorage.removeItem(storageKey);if(localStorage.getItem(storageKey)!==null){recovery.textContent=blocked;return;}for(const name of fieldNames)form.elements.namedItem(name).value="";recovery.textContent=success;}catch{recovery.textContent=blocked;}}
+function resetSavedSetup(){rotateSavedSetup("SETUP:RECOVERY-RESET","SETUP:RECOVERY-RESET-BLOCKED");}
+function clearSavedSetup(){rotateSavedSetup("SETUP:RECOVERY-CLEARED","SETUP:RECOVERY-CLEAR-BLOCKED");}
+function testStaleSavedSetup(){try{const epoch=readEpoch();if(epoch===null){recovery.textContent="SETUP:RECOVERY-EPOCH-INVALID";return;}const stale=JSON.stringify({schema:storageSchema,project:"other-project",revision:storageRevision,epoch,fields:{}});localStorage.setItem(storageKey,stale);if(localStorage.getItem(storageKey)!==stale){recovery.textContent="SETUP:RECOVERY-STALE-TEST-BLOCKED";return;}restoreSavedSetup();}catch{recovery.textContent="SETUP:RECOVERY-STALE-TEST-BLOCKED";}}
+function testReplaySavedSetup(){try{const epoch=readEpoch();if(epoch===null){recovery.textContent="SETUP:RECOVERY-EPOCH-INVALID";return;}const replay=JSON.stringify({schema:storageSchema,project:storageProject,revision:storageRevision,epoch:epoch===1?0:epoch-1,fields:Object.fromEntries(fieldNames.map((name)=>[name,"replayed"]))});localStorage.setItem(storageKey,replay);if(localStorage.getItem(storageKey)!==replay){recovery.textContent="SETUP:RECOVERY-REPLAY-TEST-BLOCKED";return;}restoreSavedSetup();}catch{recovery.textContent="SETUP:RECOVERY-REPLAY-TEST-BLOCKED";}}
+function persistSavedSetup(){const saved=values();if(!validFields(saved)){recovery.textContent="SETUP:REQUIRED-FIELDS-MISSING";return;}try{const epoch=readEpoch();if(epoch===null){recovery.textContent="SETUP:RECOVERY-EPOCH-INVALID";return;}const encoded=JSON.stringify({schema:storageSchema,project:storageProject,revision:storageRevision,epoch,fields:saved});if(localStorage.getItem(storageKey)===encoded){recovery.textContent="SETUP:RECOVERY-IDEMPOTENT";return;}localStorage.setItem(storageKey,encoded);recovery.textContent=localStorage.getItem(storageKey)===encoded?"SETUP:RELOAD-RESUMES-SAVED-STATE":"SETUP:RECOVERY-PERSISTENCE-BLOCKED";}catch{recovery.textContent="SETUP:RECOVERY-PERSISTENCE-BLOCKED";}}
 restoreSavedSetup();
 document.getElementById("reset").addEventListener("click",resetSavedSetup);
 document.getElementById("save").addEventListener("click",persistSavedSetup);
 document.getElementById("clear").addEventListener("click",clearSavedSetup);
 document.getElementById("stale").addEventListener("click",testStaleSavedSetup);
+document.getElementById("replay").addEventListener("click",testReplaySavedSetup);
 </script>
 </main></body></html>

@@ -171,6 +171,21 @@
           "type": "reopen",
           "pagePath": "/onboarding",
           "expectText": "SETUP:RECOVERY-NOT-SAVED"
+        },
+        {
+          "type": "click",
+          "match": "Test setup replay rejection",
+          "expectText": "SETUP:RECOVERY-REPLAY-REJECTED"
+        },
+        {
+          "type": "click",
+          "match": "Clear recovered setup proof",
+          "expectText": "SETUP:RECOVERY-CLEARED"
+        },
+        {
+          "type": "reopen",
+          "pagePath": "/onboarding",
+          "expectText": "SETUP:RECOVERY-NOT-SAVED"
         }
       ]
     }
