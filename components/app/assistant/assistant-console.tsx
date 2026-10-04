@@ -8,7 +8,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PageHeader } from '@/components/app/page-header'
 import { EmptyState, ErrorState, LoadingState, NotConfiguredState } from '@/components/app/states'
 import { useApi } from '@/lib/use-api'
-import { api, isApiConfigured, type AssistantConversation, type AssistantOverview } from '@/lib/api'
+import {
+  api,
+  isApiConfigured,
+  type AssistantConversation,
+  type AssistantOverview,
+  type OnboardingResponse,
+  type Settings,
+} from '@/lib/api'
 import {
   assistantErrorText,
   isNotEnabledError,
@@ -80,10 +87,39 @@ function ToolCatalogue({ overview }: { overview: AssistantOverview }) {
   )
 }
 
+function assertAssistantAuthorityPayload(settings: Settings, onboarding: OnboardingResponse) {
+  if (!settings || typeof settings !== 'object') {
+    throw new Error('Assistant settings authority payload is invalid.')
+  }
+
+  if (
+    !onboarding
+    || typeof onboarding !== 'object'
+    || !onboarding.state
+    || typeof onboarding.state !== 'object'
+    || !Number.isInteger(onboarding.state.current_step)
+    || !Array.isArray(onboarding.state.completed_steps)
+    || !onboarding.readiness
+    || typeof onboarding.readiness.ready !== 'boolean'
+    || !Array.isArray(onboarding.readiness.blockers)
+    || !Array.isArray(onboarding.readiness.warnings)
+    || !onboarding.integrations
+    || typeof onboarding.integrations.calendar !== 'boolean'
+    || typeof onboarding.integrations.phone !== 'boolean'
+    || typeof onboarding.integrations.email !== 'boolean'
+    || !onboarding.integrations.sms
+    || typeof onboarding.integrations.sms.enabled !== 'boolean'
+    || typeof onboarding.integrations.sms.deliverable !== 'boolean'
+  ) {
+    throw new Error('Assistant setup authority payload is invalid.')
+  }
+}
+
 async function assertAssistantAuthorityReadable() {
   // The Assistant is another customer surface: it must not operate from stale
-  // settings, calendar, or phone truth when either authoritative read fails.
-  await Promise.all([api.settings.get(), api.onboarding.get()])
+  // or structurally invalid settings, calendar, or phone truth.
+  const [settings, onboarding] = await Promise.all([api.settings.get(), api.onboarding.get()])
+  assertAssistantAuthorityPayload(settings, onboarding)
   return true as const
 }
 
