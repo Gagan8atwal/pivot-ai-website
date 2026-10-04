@@ -5,12 +5,16 @@ const source = readFileSync(new URL('../components/app/assistant/assistant-conso
 
 assert.match(source, /async function assertAssistantAuthorityReadable\(\)/)
 
-assert.match(source, /function assertAssistantAuthorityPayload\(settings: Settings, onboarding: OnboardingResponse\)/)
+assert.match(source, /function assertAssistantAuthorityPayload\([\s\S]*settings: Settings,[\s\S]*onboarding: OnboardingResponse,[\s\S]*me: MeResponse/)
 assert.match(source, /Number\.isInteger\(onboarding\.state\.current_step\)/)
 assert.match(source, /Array\.isArray\(onboarding\.readiness\.blockers\)/)
 assert.match(source, /typeof onboarding\.integrations\.calendar !== 'boolean'/)
 assert.match(source, /typeof onboarding\.integrations\.phone !== 'boolean'/)
 assert.match(source, /typeof onboarding\.integrations\.sms\.deliverable !== 'boolean'/)
+assert.match(source, /typeof onboarding\.state\.business_id !== 'string'/)
+assert.match(source, /onboarding\.state\.business_id\.trim\(\) !== businessId/)
+assert.match(source, /api\.me\(\)/)
+assert.match(source, /Assistant business authority is unavailable\./)
 assert.match(source, /assertAssistantAuthorityPayload\(settings, onboarding\)/)
 assert.match(source, /return true as const/)
 assert.match(source, /authorityVerified === true/)
