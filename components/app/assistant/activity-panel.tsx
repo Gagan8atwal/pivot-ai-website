@@ -8,6 +8,7 @@ import { EmptyState, ErrorState, LoadingState } from '@/components/app/states'
 import { useApi } from '@/lib/use-api'
 import { api } from '@/lib/api'
 import { humanizeToolName, runDuration, runTone } from '@/lib/assistant'
+import { assertAssistantAuthorityReadable } from '@/lib/assistant-authority'
 import { formatDateTime } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
@@ -23,7 +24,10 @@ const TONE_META = {
  * evidence that the read-only boundary is being enforced.
  */
 export function ActivityPanel() {
-  const activity = useApi(() => api.assistant.activity(), [])
+  const activity = useApi(async () => {
+    await assertAssistantAuthorityReadable()
+    return api.assistant.activity()
+  }, [])
   const runs = activity.data ?? []
 
   return (
