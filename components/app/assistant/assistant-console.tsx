@@ -13,9 +13,6 @@ import {
   isApiConfigured,
   type AssistantConversation,
   type AssistantOverview,
-  type MeResponse,
-  type OnboardingResponse,
-  type Settings,
 } from '@/lib/api'
 import {
   assistantErrorText,
@@ -23,6 +20,7 @@ import {
   normalizeMessage,
   titleFromMessage,
 } from '@/lib/assistant'
+import { assertAssistantAuthorityReadable } from '@/lib/assistant-authority'
 import { ConversationList } from '@/components/app/assistant/conversation-list'
 import { MessageList, type ChatMessage } from '@/components/app/assistant/message-list'
 import { Composer, StarterPrompts } from '@/components/app/assistant/composer'
@@ -86,60 +84,6 @@ function ToolCatalogue({ overview }: { overview: AssistantOverview }) {
       </ul>
     </details>
   )
-}
-
-function assertAssistantAuthorityPayload(
-  settings: Settings,
-  onboarding: OnboardingResponse,
-  me: MeResponse,
-) {
-  if (!settings || typeof settings !== 'object') {
-    throw new Error('Assistant settings authority payload is invalid.')
-  }
-
-  const businessId =
-    me && typeof me === 'object' && me.business && typeof me.business.id === 'string'
-      ? me.business.id.trim()
-      : ''
-  if (!businessId) {
-    throw new Error('Assistant business authority is unavailable.')
-  }
-
-  if (
-    !onboarding
-    || typeof onboarding !== 'object'
-    || !onboarding.state
-    || typeof onboarding.state !== 'object'
-    || !Number.isInteger(onboarding.state.current_step)
-    || !Array.isArray(onboarding.state.completed_steps)
-    || !onboarding.readiness
-    || typeof onboarding.readiness.ready !== 'boolean'
-    || !Array.isArray(onboarding.readiness.blockers)
-    || !Array.isArray(onboarding.readiness.warnings)
-    || !onboarding.integrations
-    || typeof onboarding.integrations.calendar !== 'boolean'
-    || typeof onboarding.integrations.phone !== 'boolean'
-    || typeof onboarding.integrations.email !== 'boolean'
-    || !onboarding.integrations.sms
-    || typeof onboarding.integrations.sms.enabled !== 'boolean'
-    || typeof onboarding.integrations.sms.deliverable !== 'boolean'
-    || typeof onboarding.state.business_id !== 'string'
-    || onboarding.state.business_id.trim() !== businessId
-  ) {
-    throw new Error('Assistant setup authority payload is invalid.')
-  }
-}
-
-async function assertAssistantAuthorityReadable() {
-  // The Assistant is another customer surface: it must not operate from stale
-  // or structurally invalid settings, calendar, or phone truth.
-  const [settings, onboarding, me] = await Promise.all([
-    api.settings.get(),
-    api.onboarding.get(),
-    api.me(),
-  ])
-  assertAssistantAuthorityPayload(settings, onboarding, me)
-  return true as const
 }
 
 export function AssistantConsole() {
