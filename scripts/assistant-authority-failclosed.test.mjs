@@ -17,6 +17,10 @@ assert.match(source, /api\.me\(\)/)
 assert.match(source, /Assistant business authority is unavailable\./)
 assert.match(source, /assertAssistantAuthorityPayload\(settings, onboarding\)/)
 assert.match(source, /return true as const/)
+
+assert.match(source, /loadMessages = React\.useCallback\([\s\S]*await assertAssistantAuthorityReadable\(\)[\s\S]*api\.assistant\.conversations\.messages/)
+assert.match(source, /loadConversations = React\.useCallback\([\s\S]*await assertAssistantAuthorityReadable\(\)[\s\S]*api\.assistant\.conversations\.list/)
+assert.match(source, /catch \(err\) \{\s*setConversations\(\[\]\)\s*setActiveId\(null\)\s*setMessages\(\[\]\)/)
 assert.match(source, /authorityVerified === true/)
 assert.match(source, /Settings &amp; setup verified/)
 assert.ok(
