@@ -80,18 +80,26 @@ function ToolCatalogue({ overview }: { overview: AssistantOverview }) {
   )
 }
 
+async function assertAssistantAuthorityReadable() {
+  // Assistant is another customer surface: never operate from stale
+  // settings, calendar, or phone truth when either authoritative read fails.
+  await Promise.all([api.settings.get(), api.onboarding.get()])
+  return true as const
+}
+
 export function AssistantConsole() {
   // ── Feature flag + capabilities ────────────────────────────────────────────
   const overview = useApi(async () => {
     try {
-      return { notEnabled: false, data: await api.assistant.overview() }
+      const [data, authorityVerified] = await Promise.all([api.assistant.overview(), assertAssistantAuthorityReadable()])
+      return { notEnabled: false, data, authorityVerified }
     } catch (err) {
       if (isNotEnabledError(err)) return { notEnabled: true, data: null }
       throw err
     }
   }, [])
 
-  const enabled = overview.data?.data?.enabled === true
+  const enabled = overview.data?.data?.enabled === true && overview.data?.authorityVerified === true
   const notEnabled = overview.data?.notEnabled === true || overview.data?.data?.enabled === false
 
   // ── Conversations ──────────────────────────────────────────────────────────
@@ -202,6 +210,7 @@ export function AssistantConsole() {
       }
 
       try {
+        await assertAssistantAuthorityReadable()
         let conversationId = activeId
         if (!conversationId) {
           const created = await api.assistant.conversations.create({
@@ -313,9 +322,12 @@ export function AssistantConsole() {
         title={HEADER.title}
         description={HEADER.description}
         actions={
-          <Badge variant="secondary" className="gap-1.5">
-            <Lock className="h-3 w-3" aria-hidden="true" /> Read-only
-          </Badge>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="secondary">Settings &amp; setup verified</Badge>
+            <Badge variant="secondary" className="gap-1.5">
+              <Lock className="h-3 w-3" aria-hidden="true" /> Read-only
+            </Badge>
+          </div>
         }
       />
 
