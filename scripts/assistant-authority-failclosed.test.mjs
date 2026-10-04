@@ -4,6 +4,14 @@ import { readFileSync } from 'node:fs'
 const source = readFileSync(new URL('../components/app/assistant/assistant-console.tsx', import.meta.url), 'utf8')
 
 assert.match(source, /async function assertAssistantAuthorityReadable\(\)/)
+
+assert.match(source, /function assertAssistantAuthorityPayload\(settings: Settings, onboarding: OnboardingResponse\)/)
+assert.match(source, /Number\.isInteger\(onboarding\.state\.current_step\)/)
+assert.match(source, /Array\.isArray\(onboarding\.readiness\.blockers\)/)
+assert.match(source, /typeof onboarding\.integrations\.calendar !== 'boolean'/)
+assert.match(source, /typeof onboarding\.integrations\.phone !== 'boolean'/)
+assert.match(source, /typeof onboarding\.integrations\.sms\.deliverable !== 'boolean'/)
+assert.match(source, /assertAssistantAuthorityPayload\(settings, onboarding\)/)
 assert.match(source, /return true as const/)
 assert.match(source, /authorityVerified === true/)
 assert.match(source, /Settings &amp; setup verified/)
