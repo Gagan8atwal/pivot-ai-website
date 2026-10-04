@@ -15,7 +15,7 @@ assert.match(source, /typeof onboarding\.state\.business_id !== 'string'/)
 assert.match(source, /onboarding\.state\.business_id\.trim\(\) !== businessId/)
 assert.match(source, /api\.me\(\)/)
 assert.match(source, /Assistant business authority is unavailable\./)
-assert.match(source, /assertAssistantAuthorityPayload\(settings, onboarding\)/)
+assert.match(source, /assertAssistantAuthorityPayload\(settings, onboarding, me\)/)
 assert.match(source, /return true as const/)
 
 assert.match(source, /loadMessages = React\.useCallback\([\s\S]*await assertAssistantAuthorityReadable\(\)[\s\S]*api\.assistant\.conversations\.messages/)
@@ -27,7 +27,7 @@ assert.ok(
   source.indexOf('authorityVerified === true') < source.indexOf('Settings &amp; setup verified'),
   'verified badge must be gated by successful authoritative reads',
 )
-assert.match(source, /Promise\.all\(\[api\.settings\.get\(\), api\.onboarding\.get\(\)\]\)/)
+assert.match(source, /Promise\.all\(\[[\s\S]*api\.settings\.get\(\)[\s\S]*api\.onboarding\.get\(\)[\s\S]*api\.me\(\)[\s\S]*\]\)/)
 assert.match(source, /Promise\.all\(\[api\.assistant\.overview\(\), assertAssistantAuthorityReadable\(\)\]\)/)
 assert.match(source, /try \{\s*await assertAssistantAuthorityReadable\(\)\s*let conversationId = activeId/)
 assert.ok(
