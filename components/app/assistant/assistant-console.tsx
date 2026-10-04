@@ -180,6 +180,7 @@ export function AssistantConsole() {
     setMessagesLoading(true)
     setMessagesError(null)
     try {
+      await assertAssistantAuthorityReadable()
       const stored = await api.assistant.conversations.messages(conversationId)
       setMessages(stored.map(normalizeMessage))
     } catch (err) {
@@ -196,6 +197,7 @@ export function AssistantConsole() {
       setConversationsLoading(true)
       setConversationsError(null)
       try {
+        await assertAssistantAuthorityReadable()
         const list = await api.assistant.conversations.list()
         setConversations(list)
         if (opts.selectFirst && list.length > 0 && list[0]?.id) {
@@ -204,6 +206,9 @@ export function AssistantConsole() {
           await loadMessages(first)
         }
       } catch (err) {
+        setConversations([])
+        setActiveId(null)
+        setMessages([])
         setConversationsError(assistantErrorText(err))
         if (isNotEnabledError(err)) setFlagRevoked(true)
       } finally {
