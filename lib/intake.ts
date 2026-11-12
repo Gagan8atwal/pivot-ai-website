@@ -2,7 +2,8 @@ export const SMS_CONSENT_VERSION = '2026-07-22-v1'
 
 export const SMS_CONSENT_PREFIX =
   'I agree to receive SMS updates from Pivot AI about my demo request. ' +
-  'Message and data rates may apply. Reply STOP to opt out at any time.'
+  'Message and data rates may apply. Reply STOP to opt out at any time. ' +
+  'Reply HELP for help. Consent is not required to request a demo.'
 
 export const SMS_CONSENT_TEXT =
   `${SMS_CONSENT_PREFIX} See our Privacy Policy and Terms of Service.`
