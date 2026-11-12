@@ -333,7 +333,7 @@ export async function POST(request: Request) {
         notes,
         sms_consent: consent,
         sms_consent_method: consent ? SMS_CONSENT_METHOD : null,
-        sms_consent_text: SMS_CONSENT_TEXT,
+        sms_consent_text: consent ? SMS_CONSENT_TEXT : null,
         sms_consent_at: consent ? now : null,
         sms_consent_ip: consent ? requestIp(request) : null,
         sms_consent_user_agent: consent
