@@ -129,6 +129,7 @@ test('demo API records SMS consent only after explicit affirmative checkbox sele
   assert.match(source, /const consent = body\.consent === true \|\| body\.consent === 'true'/)
   assert.match(source, /sms_consent:\s*consent/)
   assert.match(source, /sms_consent_method:\s*consent \? SMS_CONSENT_METHOD : null/)
+  assert.match(source, /sms_consent_text:\s*consent \? SMS_CONSENT_TEXT : null/)
   assert.match(source, /sms_consent_at:\s*consent \? now : null/)
   assert.match(source, /sms_consent_ip:\s*consent \? requestIp\(request\) : null/)
   assert.doesNotMatch(source, /sendSMS|twilioClient\.messages\.create/)
