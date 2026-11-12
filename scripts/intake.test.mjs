@@ -73,6 +73,10 @@ console.log('\nconsent evidence contract')
 
 test('consent text has an explicit version and one canonical sentence', () => {
   assert.equal(SMS_CONSENT_VERSION, '2026-07-22-v1')
+  assert.equal(
+    SMS_CONSENT_PREFIX,
+    'I agree to receive SMS updates from Pivot AI about my demo request. Message and data rates may apply. Reply STOP to opt out at any time. Reply HELP for help. Consent is not required to request a demo.'
+  )
   assert.equal(SMS_CONSENT_METHOD, `web_form:${SMS_CONSENT_VERSION}`)
   assert.equal(
     SMS_CONSENT_TEXT,
