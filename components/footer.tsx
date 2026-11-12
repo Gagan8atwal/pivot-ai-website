@@ -126,11 +126,12 @@ export function Footer() {
           <p className="text-xs text-slate-500 leading-relaxed max-w-4xl">
             <strong className="text-slate-400">SMS Consent &amp; Opt-Out:</strong>{' '}
             SMS consent is optional and is not required to request a demo. Providing a phone
-            number or submitting the demo form does not opt you in to text messages. The
-            demo-request form does not send a text message. We record SMS consent only when
-            you separately select the optional consent checkbox on the demo form; that choice
-            may be used for future updates about your inquiry. If you opt in, message frequency
-            varies and message and data rates may apply. Reply <strong className="text-slate-400">STOP</strong> to
+            number or submitting the demo form does not opt you in to text messages. If you
+            leave the optional checkbox unchecked, no SMS consent is recorded and no
+            customer-facing SMS is sent to you from this demo request. A separate internal
+            notification may be sent to Pivot AI&apos;s configured owner. If you opt in, the
+            recorded choice applies only to demo-related updates. Message frequency varies
+            and message and data rates may apply. Reply <strong className="text-slate-400">STOP</strong> to
             opt out at any time. Reply <strong className="text-slate-400">HELP</strong> for
             help. Your mobile information will not be shared with third parties or affiliates
             for marketing or promotional purposes. For more information, see our{' '}
