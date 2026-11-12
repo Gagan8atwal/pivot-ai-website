@@ -79,6 +79,8 @@ test('consent text has an explicit version and one canonical sentence', () => {
     `${SMS_CONSENT_PREFIX} See our Privacy Policy and Terms of Service.`
   )
   assert.match(SMS_CONSENT_TEXT, /Reply STOP to opt out/)
+  assert.match(SMS_CONSENT_TEXT, /Reply HELP for help/)
+  assert.match(SMS_CONSENT_TEXT, /Consent is not required to request a demo/)
 })
 
 test('demo UI renders the shared consent contract instead of duplicating copy', () => {
