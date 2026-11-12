@@ -99,6 +99,30 @@ test('consent metadata is conditional on an affirmative checkbox', () => {
   assert.match(source, /sms_consent_method:\s*consent \? SMS_CONSENT_METHOD : null/)
 })
 
+test('footer does not imply SMS consent from a phone number or demo request', () => {
+  const source = read('components/footer.tsx')
+  assert.match(source, /SMS consent is optional and is not required to request a demo/i)
+  assert.match(source, /submitting the demo form does not opt you in/i)
+  assert.match(source, /demo-request form does not send a text message/i)
+  assert.doesNotMatch(source, /by providing your phone number and requesting a demo, you agree/i)
+})
+
+test('demo API records SMS consent only after explicit affirmative checkbox selection', () => {
+  const source = read('app/api/demo/route.ts')
+  assert.match(source, /const consent = body\.consent === true \|\| body\.consent === 'true'/)
+  assert.match(source, /sms_consent:\s*consent/)
+  assert.match(source, /sms_consent_method:\s*consent \? SMS_CONSENT_METHOD : null/)
+  assert.match(source, /sms_consent_at:\s*consent \? now : null/)
+  assert.match(source, /sms_consent_ip:\s*consent \? requestIp\(request\) : null/)
+  assert.doesNotMatch(source, /sendSMS|twilioClient\.messages\.create/)
+})
+
+test('customer confirmation includes SMS consent text only when consent was affirmative', () => {
+  const source = read('lib/demo-emails.ts')
+  assert.match(source, /const smsNote = data\.smsConsent\s*\?/)
+  assert.match(source, /\$\{smsNote\}/)
+})
+
 console.log('\nidempotency and recovery wiring')
 
 for (const [label, relative] of [
