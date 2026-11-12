@@ -107,6 +107,16 @@ test('footer does not imply SMS consent from a phone number or demo request', ()
   assert.doesNotMatch(source, /by providing your phone number and requesting a demo, you agree/i)
 })
 
+test('demo form remains submittable when the optional SMS checkbox is unchecked', () => {
+  const source = read('app/demo/page.tsx')
+  const canSubmit = source.match(/const canSubmit =([\\s\\S]*?)\\n\\n  function handleChange/)
+  assert.ok(canSubmit, 'demo form must expose its required-field predicate')
+  assert.match(canSubmit[1], /form\\.phone\\.trim\\(\\)/)
+  assert.doesNotMatch(canSubmit[1], /form\\.consent/)
+  assert.match(source, /consent:\\s*false/)
+  assert.match(source, /SMS consent is optional and is not required to request a demo/i)
+})
+
 test('demo API records SMS consent only after explicit affirmative checkbox selection', () => {
   const source = read('app/api/demo/route.ts')
   assert.match(source, /const consent = body\.consent === true \|\| body\.consent === 'true'/)
